@@ -1,0 +1,17 @@
+# Private Arbeitsnotizen
+_intern/
+
+# Bildschirmfotos der Bedienprobe (tools/bildschirmfotos.mjs)
+tools/shots/
+
+# Python
+__pycache__/
+*.pyc
+
+# Betriebssystem
+Thumbs.db
+desktop.ini
+*.log
+
+# Claude-Code-Einstellungen
+.claude/

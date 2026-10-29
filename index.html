@@ -1,0 +1,3831 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Pocketsum schickt nichts nach draußen, und diese Regel macht das überprüfbar:
+     keine Verbindungen (connect-src 'none'), keine Formularziele, keine fremden
+     Skripte, Bilder oder Schriften. Die Skripte stehen in dieser Datei, deshalb
+     'unsafe-inline' – fremde Quellen bleiben trotzdem gesperrt. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F0F21">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F3F8">
+<meta name="description" content="Pocketsum – five small calculators in one file: VAT, tips, fuel prices, dividends and trading costs. In 14 languages, works offline after the first visit, never sends what you enter anywhere. / Fünf kleine Rechner in einer Datei: Mehrwertsteuer, Trinkgeld, Spritpreis, Dividende und Trade-Kosten.">
+<meta name="application-name" content="Pocketsum">
+<meta name="apple-mobile-web-app-title" content="Pocketsum">
+
+<!-- Link-Vorschau. og:image muss absolut sein, Crawler lösen relative Pfade nicht auf. -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dennismit2n.github.io/pocketsum/">
+<meta property="og:title" content="Pocketsum — five small calculators">
+<meta property="og:description" content="VAT, tips, fuel prices, dividends and trading costs in one small file. In your browser, no account, what you enter is never sent anywhere.">
+<meta property="og:image" content="https://dennismit2n.github.io/pocketsum/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Dark graphic: the Pocketsum icon, a pocket with a sum sign, below it the name “Pocketsum”, the line “Five small calculators that want nothing from you” and the five calculators VAT, tips, fuel, dividends and trading costs.">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="de_DE">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="icon" href="./icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>Pocketsum</title>
+<script>
+/* Vor dem ersten Bild: gespeicherte Darstellung setzen, sonst blitzt kurz die falsche Farbe auf.
+   Und solange die Seite noch nicht in die gewählte Sprache übersetzt ist, bleibt sie unsichtbar
+   (die Rohtexte im HTML sind deutsch). Spätestens nach drei Sekunden wird sie trotzdem gezeigt,
+   falls ein Skriptfehler das Übersetzen verhindert. Die Sprachliste steht hier ein zweites Mal
+   (wie in I18N weiter unten): wer eine Sprache hinzufügt, trägt sie an beiden Stellen ein. */
+(function () {
+  var d = document.documentElement;
+  try {
+    var th = localStorage.getItem('pocketsum.theme');
+    if (th === 'light' || th === 'dark') d.setAttribute('data-theme', th);
+  } catch (e) {}
+  var codes = ['de','en','es','fr','it','nl','pl','pt','tr','ru','hi','zh','ja','ko'], lang = null;
+  try { var s = localStorage.getItem('pocketsum.lang'); if (codes.indexOf(s) >= 0) lang = s; } catch (e) {}
+  if (!lang) {
+    var c = navigator.languages || [navigator.language || 'en'];
+    for (var i = 0; i < c.length && !lang; i++) {
+      var k = String(c[i]).toLowerCase().split('-')[0];
+      if (codes.indexOf(k) >= 0) lang = k;
+    }
+  }
+  if ((lang || 'en') !== 'de') {
+    d.className += ' i18n-wartet';
+    setTimeout(function () { d.className = d.className.replace(/\s*i18n-wartet/g, ''); }, 3000);
+  }
+})();
+</script>
+<style>
+/* Farben: hell als Grundstufe, dunkel über die Systemeinstellung (außer „Hell“ ist erzwungen)
+   oder über die Auswahl „Dunkel“. Die beiden Dunkel-Blöcke müssen gleich bleiben.
+   Palette ggaallaaxxyy77 der Werkstatt-Startseite. */
+:root {
+  --bg: #F2F3F8;
+  --panel: #FFFFFF;
+  --panel-2: #F4F4FA;
+  --border: #DFE0ED;
+  --text: #1A1932;
+  --soft: #585981;
+  --accent: #524AAB;
+  --accent-strong: #464480;
+  --warn: #B45309;
+  --bad: #BE123C;
+  --c-mwst: #524AAB;
+  --c-tip: #B45309;
+  --c-sprit: #0369A1;
+  --c-divi: #15803D;
+  --c-trade: #BE123C;
+  --radius: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F0F21;
+    --panel: #181831;
+    --panel-2: #1F1F3D;
+    --border: #2D2C4F;
+    --text: #E2E2F6;
+    --soft: #A6A6CB;
+    --accent: #A5A5FF;
+    --accent-strong: #B4B5FF;
+    --warn: #FFC97A;
+    --bad: #FF8A9B;
+    --c-mwst: #A5A5FF;
+    --c-tip: #FFC97A;
+    --c-sprit: #75C7FF;
+    --c-divi: #7EE0A0;
+    --c-trade: #FF9FB5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F0F21;
+  --panel: #181831;
+  --panel-2: #1F1F3D;
+  --border: #2D2C4F;
+  --text: #E2E2F6;
+  --soft: #A6A6CB;
+  --accent: #A5A5FF;
+  --accent-strong: #B4B5FF;
+  --warn: #FFC97A;
+  --bad: #FF8A9B;
+  --c-mwst: #A5A5FF;
+  --c-tip: #FFC97A;
+  --c-sprit: #75C7FF;
+  --c-divi: #7EE0A0;
+  --c-trade: #FF9FB5;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+html.i18n-wartet body { visibility: hidden; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
+  min-height: 100vh;
+}
+button, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+a { color: var(--accent); }
+
+.kopf {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 18px 16px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px 12px;
+}
+.marke { min-width: 0; }
+.kopf h1 { margin: 0; font-size: 1.55rem; letter-spacing: .01em; line-height: 1.2; }
+.kopf .unter { margin: 4px 0 0; color: var(--soft); font-size: .92rem; }
+.steuer { display: flex; gap: 6px; flex: none; }
+.steuer select {
+  min-height: 40px;
+  max-width: 100%;
+  padding: 0 8px 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: .88rem;
+}
+/* Am Telefon stehen beide Auswahlfelder in eigener Zeile, je halbe Breite: ein Auswahlfeld
+   ist so breit wie sein längster Eintrag, und der wächst mit jeder Sprache. */
+@media (max-width: 480px) {
+  .steuer { flex: 1 1 100%; }
+  .steuer select { flex: 1 1 0; min-width: 0; }
+}
+
+.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.tabs-innen {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs-innen::-webkit-scrollbar { display: none; }
+.tab {
+  flex: 1 0 auto;
+  min-width: 44px;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 2px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--soft);
+  font-size: .74rem;
+  line-height: 1.1;
+  text-align: center;
+  white-space: nowrap;
+}
+/* Unter 360 px etwas kleiner, damit auch „Dywidendy“ oder „Дивиденды“ in einem Stück passen;
+   reicht es trotzdem nicht, lässt sich die Leiste seitlich schieben, statt mitten im Wort zu brechen. */
+@media (max-width: 359px) { .tab { font-size: .68rem; padding: 6px 1px; } .tabs-innen { gap: 2px; padding: 8px 6px; } }
+.tab svg { width: 22px; height: 22px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-selected="true"] { background: var(--panel); border-color: var(--border); color: var(--text); }
+.tab[aria-selected="true"] svg { stroke: var(--farbe); }
+
+main { max-width: 720px; margin: 0 auto; padding: 14px 16px 28px; }
+.rechner[hidden] { display: none; }
+.rechner h2 { font-size: 1.15rem; margin: 4px 0 10px; }
+.rechner h2 small { display: block; font-weight: 400; font-size: .85rem; color: var(--soft); margin-top: 2px; }
+#r-mwst  { --farbe: var(--c-mwst); }
+#r-tip   { --farbe: var(--c-tip); }
+#r-sprit { --farbe: var(--c-sprit); }
+#r-divi  { --farbe: var(--c-divi); }
+#r-trade { --farbe: var(--c-trade); }
+
+.karte {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 14px 6px;
+  margin-bottom: 12px;
+}
+.karte h3 { font-size: .95rem; margin: 2px 0 10px; color: var(--soft); font-weight: 600; }
+
+.feld { display: flex; flex-direction: column; gap: 6px; margin: 0 0 12px; padding: 0; border: 0; min-width: 0; }
+.feld > label, .feld > legend, .label { font-size: .84rem; color: var(--soft); padding: 0; }
+.reihe { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.reihe > .feld { justify-content: flex-end; }
+@media (max-width: 340px) { .reihe { grid-template-columns: 1fr; } }
+.eingabe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 12px;
+  min-height: 48px;
+}
+.eingabe:focus-within { border-color: var(--farbe, var(--accent)); box-shadow: 0 0 0 1px var(--farbe, var(--accent)); }
+.eingabe.ungueltig { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+.eingabe input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  padding: 10px 0;
+}
+.eingabe input::placeholder { color: var(--soft); opacity: .85; }
+.eingabe .einheit { color: var(--soft); font-size: .95rem; flex: none; }
+.eingabe.klein { min-height: 40px; padding: 0 10px; }
+.eingabe.klein input { font-size: 1rem; padding: 6px 0; }
+
+.segment, .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.segment label { position: relative; }
+.segment label > input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.segment label > span, .chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--soft);
+  font-size: .92rem;
+  line-height: 1.1;
+  text-align: center;
+}
+.segment label > input:checked + span, .chip[aria-pressed="true"] {
+  border-color: var(--farbe, var(--accent));
+  color: var(--text);
+  background: color-mix(in srgb, var(--farbe, var(--accent)) 18%, var(--panel-2));
+}
+.segment label > input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.segment .eigen { display: inline-flex; align-items: center; gap: 6px; }
+.segment .eigen .eingabe { width: 110px; }
+
+.schalter { display: flex; align-items: center; gap: 10px; min-height: 40px; font-size: .95rem; cursor: pointer; }
+.schalter input { width: 20px; height: 20px; flex: none; accent-color: var(--farbe, var(--accent)); margin: 0; }
+
+.stepper { display: flex; align-items: center; gap: 6px; }
+.stepper .eingabe { width: 90px; }
+.stepper .eingabe input { text-align: center; }
+.stepper button {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 1.3rem;
+}
+
+.ergebnis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.wert {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+.wert b { display: block; font-size: .78rem; color: var(--soft); font-weight: 500; margin-bottom: 2px; }
+.wert .z { display: block; font-size: 1.3rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.wert .zusatz { display: block; font-size: .78rem; color: var(--soft); margin-top: 2px; }
+.wert.haupt { border-color: var(--farbe); background: color-mix(in srgb, var(--farbe) 14%, var(--panel-2)); }
+.wert.haupt .z { font-size: 1.65rem; color: var(--farbe); }
+
+.spruch { margin: 2px 0 10px; font-size: 1rem; }
+.hinweis { margin: 4px 0 10px; font-size: .8rem; color: var(--soft); }
+.warnung { margin: 4px 0 10px; font-size: .85rem; color: var(--warn); }
+.warnung:empty { display: none; }
+
+.tabelle-wrap { overflow-x: auto; margin: 0 -14px 8px; padding: 0 14px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .92rem; }
+th, td { padding: 8px 4px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+@media (max-width: 359px) { table { font-size: .85rem; } }
+th { font-weight: 500; color: var(--soft); font-size: .78rem; }
+th:first-child, td:first-child { text-align: left; white-space: normal; }
+th { white-space: normal; }
+/* Am schmalen Telefon fällt in der Preistabelle die Spalte „100 km“ weg: sie steht schon in der
+   Vergleichstabelle darüber, und „± Monat“ ist das, wofür man die Tabelle aufmacht. */
+@media (max-width: 400px) { .preistabelle th:nth-child(3), .preistabelle td:nth-child(3) { display: none; } }
+tr.aktuell td { background: color-mix(in srgb, var(--farbe) 14%, transparent); font-weight: 600; }
+tr.neu td { box-shadow: inset 0 0 0 1px var(--farbe); }
+td.plus { color: var(--bad); }
+td.minus { color: var(--c-divi); }
+
+.aktionen { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; padding: 4px 0 8px; }
+.klein {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--soft);
+  font-size: .9rem;
+}
+.klein.primaer { color: var(--text); border-color: var(--farbe); }
+
+footer { max-width: 720px; margin: 0 auto; padding: 8px 16px 28px; color: var(--soft); font-size: .8rem; text-align: center; }
+footer p { margin: 4px 0; }
+footer .sep { opacity: .7; }
+
+#toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(10px);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: .9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s, transform .2s;
+  z-index: 20;
+}
+#toast.zeigen { opacity: 1; transform: translateX(-50%) translateY(0); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+main input, main button, main label { scroll-margin-top: 84px; }
+@media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="kopf">
+  <div class="marke">
+    <h1>Pocketsum</h1>
+    <p class="unter" data-i18n="tagline">Fünf kleine Rechner, die nichts von dir wollen.</p>
+  </div>
+  <div class="steuer">
+    <label class="sr" for="theme" data-i18n="themeLabel">Darstellung</label>
+    <select id="theme" autocomplete="off">
+      <option value="system" data-i18n="themeSystem">System</option>
+      <option value="light" data-i18n="themeLight">Hell</option>
+      <option value="dark" data-i18n="themeDark">Dunkel</option>
+    </select>
+    <label class="sr" for="lang" data-i18n="langLabel">Sprache</label>
+    <select id="lang" autocomplete="off"></select>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Rechner" data-i18n-aria="tabsLabel">
+  <div class="tabs-innen" role="tablist">
+    <button class="tab" role="tab" id="tab-mwst" aria-controls="r-mwst" aria-selected="true" style="--farbe: var(--c-mwst)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>
+      <span data-i18n="tabMwst">MwSt</span>
+    </button>
+    <button class="tab" role="tab" id="tab-tip" aria-controls="r-tip" aria-selected="false" tabindex="-1" style="--farbe: var(--c-tip)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/></svg>
+      <span data-i18n="tabTip">Trinkgeld</span>
+    </button>
+    <button class="tab" role="tab" id="tab-sprit" aria-controls="r-sprit" aria-selected="false" tabindex="-1" style="--farbe: var(--c-sprit)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M3 21h13"/><path d="M7 7h5v4H7z"/><path d="M15 9h2l2 2v6a1.5 1.5 0 0 1-3 0v-4"/></svg>
+      <span data-i18n="tabSprit">Sprit</span>
+    </button>
+    <button class="tab" role="tab" id="tab-divi" aria-controls="r-divi" aria-selected="false" tabindex="-1" style="--farbe: var(--c-divi)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-5 4 4 8-8"/><path d="M15 8h5v5"/><path d="M3 21h18"/></svg>
+      <span data-i18n="tabDivi">Dividende</span>
+    </button>
+    <button class="tab" role="tab" id="tab-trade" aria-controls="r-trade" aria-selected="false" tabindex="-1" style="--farbe: var(--c-trade)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h14l-3-3"/><path d="M20 16H6l3 3"/></svg>
+      <span data-i18n="tabTrade">Trade</span>
+    </button>
+  </div>
+</nav>
+
+<main>
+
+<!-- Zahlen in Beschriftungen (data-n="art:wert") setzt das Skript im Format der gewählten
+     Sprache ein: pct = Prozent, eur0 = Euro ohne Cent, ct = Cent, ctd = Cent mit Vorzeichen.
+     Steht zusätzlich data-i18n daneben, landet die Zahl im Platzhalter {v} des Textes.
+     Die Standardwerte der Eingabefelder stehen im deutschen Format; das Skript wandelt sie
+     beim Start in das Format der gewählten Sprache um. -->
+
+<!-- ===================== MwSt ===================== -->
+<section class="rechner" id="r-mwst" role="tabpanel" aria-labelledby="tab-mwst" data-tab="mwst">
+  <h2><span data-i18n="mwstTitle">Mehrwertsteuer</span> <small data-i18n="mwstSub">Netto, Steuer und Brutto in beide Richtungen</small></h2>
+  <div class="karte">
+    <div class="feld">
+      <label for="mwst-betrag" data-i18n="amount">Betrag</label>
+      <div class="eingabe"><input id="mwst-betrag" inputmode="decimal" autocomplete="off" data-ph-n="0:2" value="100"><span class="einheit">€</span></div>
+    </div>
+    <fieldset class="feld">
+      <legend data-i18n="mwstIs">Der Betrag ist</legend>
+      <div class="segment">
+        <label><input type="radio" name="mwst-art" value="netto" checked><span data-i18n="mwstNet">netto, ohne MwSt</span></label>
+        <label><input type="radio" name="mwst-art" value="brutto"><span data-i18n="mwstGross">brutto, mit MwSt</span></label>
+      </div>
+    </fieldset>
+    <fieldset class="feld">
+      <legend data-i18n="mwstRate">Steuersatz</legend>
+      <div class="segment">
+        <label><input type="radio" name="mwst-satz" value="19" checked><span data-n="pct:19">19 %</span></label>
+        <label><input type="radio" name="mwst-satz" value="7"><span data-n="pct:7">7 %</span></label>
+        <label><input type="radio" name="mwst-satz" value="0"><span data-n="pct:0">0 %</span></label>
+        <span class="eigen"><label><input type="radio" name="mwst-satz" value="eigen"><span data-i18n="mwstCustom">eigener</span></label>
+          <span class="eingabe klein"><input id="mwst-satz-eigen" inputmode="decimal" autocomplete="off" data-i18n-ph="egValue" data-ph-v="20" data-i18n-aria="mwstCustomAria" aria-label="Eigener Steuersatz in Prozent" data-eigen="mwst-satz"><span class="einheit">%</span></span></span>
+      </div>
+    </fieldset>
+    <p class="hinweis" data-i18n="mwstRateHint">19 % und 7 % sind die Sätze in Deutschland. Für andere Länder trag deinen Satz bei „eigener“ ein.</p>
+  </div>
+  <div class="karte">
+    <div class="ergebnis">
+      <div class="wert" id="mwst-k-netto"><b data-i18n="resNet">Netto</b><span class="z" id="mwst-netto">–</span></div>
+      <div class="wert" id="mwst-k-steuer"><b><span data-i18n="resTax">MwSt</span> <span id="mwst-satz-anzeige">19 %</span></b><span class="z" id="mwst-steuer">–</span></div>
+      <div class="wert" id="mwst-k-brutto"><b data-i18n="resGross">Brutto</b><span class="z" id="mwst-brutto">–</span></div>
+    </div>
+    <p class="hinweis" id="mwst-weg"></p>
+    <div class="aktionen">
+      <button type="button" class="klein" data-reset="mwst" data-i18n="reset">Zurücksetzen</button>
+      <button type="button" class="klein primaer" data-kopie="mwst" data-i18n="copy">Ergebnis kopieren</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Trinkgeld ===================== -->
+<section class="rechner" id="r-tip" role="tabpanel" aria-labelledby="tab-tip" data-tab="tip" hidden>
+  <h2><span data-i18n="tipTitle">Trinkgeld</span> <small data-i18n="tipSub">Mit Aufrunden und Aufteilen auf mehrere Personen</small></h2>
+  <div class="karte">
+    <div class="feld">
+      <label for="tip-rechnung" data-i18n="tipBill">Rechnungsbetrag</label>
+      <div class="eingabe"><input id="tip-rechnung" inputmode="decimal" autocomplete="off" data-ph-n="0:2" value="45"><span class="einheit">€</span></div>
+    </div>
+    <fieldset class="feld">
+      <legend data-i18n="tipLegend">Trinkgeld</legend>
+      <div class="segment">
+        <label><input type="radio" name="tip-prozent" value="5"><span data-n="pct:5">5 %</span></label>
+        <label><input type="radio" name="tip-prozent" value="10" checked><span data-n="pct:10">10 %</span></label>
+        <label><input type="radio" name="tip-prozent" value="15"><span data-n="pct:15">15 %</span></label>
+        <label><input type="radio" name="tip-prozent" value="20"><span data-n="pct:20">20 %</span></label>
+        <span class="eigen"><label><input type="radio" name="tip-prozent" value="eigen"><span data-i18n="tipCustom">eigenes</span></label>
+          <span class="eingabe klein"><input id="tip-prozent-eigen" inputmode="decimal" autocomplete="off" data-i18n-ph="egValue" data-ph-v="12" data-i18n-aria="tipCustomAria" aria-label="Eigener Trinkgeld-Prozentsatz" data-eigen="tip-prozent"><span class="einheit">%</span></span></span>
+      </div>
+    </fieldset>
+    <fieldset class="feld">
+      <legend data-i18n="tipRoundLegend">Gesamtbetrag aufrunden</legend>
+      <div class="segment">
+        <label><input type="radio" name="tip-rund" value="0"><span data-i18n="tipRoundNone">nicht runden</span></label>
+        <label><input type="radio" name="tip-rund" value="0.5"><span data-i18n="roundTo" data-n="ct:50">auf 50 ct</span></label>
+        <label><input type="radio" name="tip-rund" value="1" checked><span data-i18n="tipRoundWhole">auf volle €</span></label>
+        <label><input type="radio" name="tip-rund" value="5"><span data-i18n="roundTo" data-n="eur0:5">auf 5 €</span></label>
+      </div>
+    </fieldset>
+    <div class="feld">
+      <label for="tip-personen" data-i18n="tipPeople">Personen</label>
+      <div class="stepper">
+        <button type="button" data-step="-1" data-i18n-aria="tipFewer" aria-label="Eine Person weniger">−</button>
+        <div class="eingabe"><input id="tip-personen" inputmode="numeric" autocomplete="off" value="1"></div>
+        <button type="button" data-step="1" data-i18n-aria="tipMore" aria-label="Eine Person mehr">+</button>
+      </div>
+    </div>
+  </div>
+  <div class="karte">
+    <p class="spruch" id="tip-spruch"></p>
+    <div class="ergebnis">
+      <div class="wert haupt"><b><span data-i18n="resTip">Trinkgeld</span> <span id="tip-satz"></span></b><span class="z" id="tip-trinkgeld">–</span></div>
+      <div class="wert"><b data-i18n="resTotal">Gesamt</b><span class="z" id="tip-gesamt">–</span></div>
+      <div class="wert" id="tip-k-pro"><b data-i18n="resPerPerson">Pro Person</b><span class="z" id="tip-pro">–</span><span class="zusatz" id="tip-tippro"></span></div>
+    </div>
+    <div class="aktionen">
+      <button type="button" class="klein" data-reset="tip" data-i18n="reset">Zurücksetzen</button>
+      <button type="button" class="klein primaer" data-kopie="tip" data-i18n="copy">Ergebnis kopieren</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Sprit ===================== -->
+<section class="rechner" id="r-sprit" role="tabpanel" aria-labelledby="tab-sprit" data-tab="sprit" hidden>
+  <h2><span data-i18n="spritTitle">Spritpreis</span> <small data-i18n="spritSub">Was ein Preisanstieg dich pro Tankfüllung, pro 100 km und pro Monat kostet</small></h2>
+  <div class="karte">
+    <div class="reihe">
+      <div class="feld">
+        <label for="sprit-preis" data-i18n="spritNow">Preis jetzt</label>
+        <div class="eingabe"><input id="sprit-preis" inputmode="decimal" autocomplete="off" data-ph-n="1.899:3" value="1,799" data-dez3><span class="einheit">€/l</span></div>
+      </div>
+      <div class="feld">
+        <label for="sprit-neu" data-i18n="spritNew">Preis neu</label>
+        <div class="eingabe"><input id="sprit-neu" inputmode="decimal" autocomplete="off" data-ph-n="1.999:3" value="1,899" data-dez3><span class="einheit">€/l</span></div>
+      </div>
+    </div>
+    <div class="feld">
+      <span class="label" id="sprit-chips-label" data-i18n="spritChips">Preis neu schnell setzen: Preis jetzt …</span>
+      <div class="chips" role="group" aria-labelledby="sprit-chips-label">
+        <button type="button" class="chip" data-delta="-0.10" data-n="ctd:-10">−10 ct</button>
+        <button type="button" class="chip" data-delta="0.05" data-n="ctd:5">+5 ct</button>
+        <button type="button" class="chip" data-delta="0.10" data-n="ctd:10">+10 ct</button>
+        <button type="button" class="chip" data-delta="0.20" data-n="ctd:20">+20 ct</button>
+        <button type="button" class="chip" data-delta="0.50" data-n="ctd:50">+50 ct</button>
+      </div>
+    </div>
+    <div class="reihe">
+      <div class="feld">
+        <label for="sprit-tank" data-i18n="spritTank">Tankgröße</label>
+        <div class="eingabe"><input id="sprit-tank" inputmode="decimal" autocomplete="off" value="50"><span class="einheit">l</span></div>
+      </div>
+      <div class="feld">
+        <label for="sprit-verbrauch" data-i18n="spritUse">Verbrauch</label>
+        <div class="eingabe"><input id="sprit-verbrauch" inputmode="decimal" autocomplete="off" value="7,0"><span class="einheit">l/100 km</span></div>
+      </div>
+    </div>
+    <div class="feld">
+      <label for="sprit-km" data-i18n="spritKm">Fahrleistung</label>
+      <div class="eingabe"><input id="sprit-km" inputmode="decimal" autocomplete="off" value="1000"><span class="einheit" data-i18n="unitKmMonth">km/Monat</span></div>
+    </div>
+  </div>
+  <div class="karte">
+    <div class="ergebnis">
+      <div class="wert haupt"><b id="sprit-ueb-prozent">Anstieg</b><span class="z" id="sprit-prozent">–</span><span class="zusatz" id="sprit-cent"></span></div>
+      <div class="wert"><b id="sprit-ueb-monat">Mehr pro Monat</b><span class="z" id="sprit-d-monat">–</span><span class="zusatz" id="sprit-d-jahr"></span></div>
+    </div>
+    <div class="tabelle-wrap">
+      <table>
+        <thead><tr><th data-i18n="thCost">Kosten</th><th data-i18n="thNow">jetzt</th><th data-i18n="thNew">neu</th><th>±</th></tr></thead>
+        <tbody>
+          <tr><td data-i18n="rowFill">Füllung</td><td id="sprit-a-fuellung">–</td><td id="sprit-n-fuellung">–</td><td id="sprit-d-fuellung">–</td></tr>
+          <tr><td>100 km</td><td id="sprit-a-100">–</td><td id="sprit-n-100">–</td><td id="sprit-d-100">–</td></tr>
+          <tr><td data-i18n="rowMonth">Monat</td><td id="sprit-a-monat">–</td><td id="sprit-n-monat">–</td><td id="sprit-d-monat2">–</td></tr>
+          <tr><td data-i18n="rowYear">Jahr</td><td id="sprit-a-jahr">–</td><td id="sprit-n-jahr">–</td><td id="sprit-d-jahr2">–</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="aktionen">
+      <button type="button" class="klein" data-reset="sprit" data-i18n="reset">Zurücksetzen</button>
+      <button type="button" class="klein primaer" data-kopie="sprit" data-i18n="copy">Ergebnis kopieren</button>
+    </div>
+  </div>
+  <div class="karte">
+    <h3 data-i18n="spritTableTitle">Preistabelle rund um den aktuellen Preis</h3>
+    <fieldset class="feld">
+      <legend data-i18n="spritStep">Schrittweite</legend>
+      <div class="segment">
+        <label><input type="radio" name="sprit-schritt" value="0.01"><span data-n="ct:1">1 ct</span></label>
+        <label><input type="radio" name="sprit-schritt" value="0.05" checked><span data-n="ct:5">5 ct</span></label>
+        <label><input type="radio" name="sprit-schritt" value="0.10"><span data-n="ct:10">10 ct</span></label>
+      </div>
+    </fieldset>
+    <div class="tabelle-wrap">
+      <table class="preistabelle">
+        <thead><tr><th>€/l</th><th data-i18n="rowFill">Füllung</th><th>100 km</th><th data-i18n="rowMonth">Monat</th><th data-i18n="thDiffMonth">± Monat</th></tr></thead>
+        <tbody id="sprit-tabelle"></tbody>
+      </table>
+    </div>
+    <p class="hinweis" data-i18n="spritTableHint">Die markierte Zeile ist der aktuelle Preis, die umrandete der neue. „Füllung“ ist eine volle Tankfüllung, „± Monat“ der Unterschied zum aktuellen Preis bei deiner Fahrleistung.</p>
+  </div>
+</section>
+
+<!-- ===================== Dividende ===================== -->
+<section class="rechner" id="r-divi" role="tabpanel" aria-labelledby="tab-divi" data-tab="divi" hidden>
+  <h2><span data-i18n="diviTitle">Dividende</span> <small data-i18n="diviSub">Brutto, Steuer und Netto – pro Jahr, pro Ausschüttung, pro Monat</small></h2>
+  <div class="karte">
+    <fieldset class="feld">
+      <legend data-i18n="diviStart">Ausgangspunkt</legend>
+      <div class="segment">
+        <label><input type="radio" name="divi-modus" value="aktien" checked><span data-i18n="diviHave">Ich habe Aktien</span></label>
+        <label><input type="radio" name="divi-modus" value="betrag"><span data-i18n="diviInvest">Ich lege einen Betrag an</span></label>
+      </div>
+    </fieldset>
+    <div class="reihe">
+      <div class="feld" data-zeige="divi-modus=aktien">
+        <label for="divi-anzahl" data-i18n="diviCount">Anzahl Aktien</label>
+        <div class="eingabe"><input id="divi-anzahl" inputmode="decimal" autocomplete="off" value="100"><span class="einheit" data-i18n="unitPcs">Stk.</span></div>
+      </div>
+      <div class="feld" data-zeige="divi-modus=betrag" hidden>
+        <label for="divi-betrag" data-i18n="diviAmount">Anlagebetrag</label>
+        <div class="eingabe"><input id="divi-betrag" inputmode="decimal" autocomplete="off" value="5000"><span class="einheit">€</span></div>
+      </div>
+      <div class="feld">
+        <label for="divi-kurs" data-i18n="diviPrice">Kurs je Aktie</label>
+        <div class="eingabe"><input id="divi-kurs" inputmode="decimal" autocomplete="off" value="50"><span class="einheit">€</span></div>
+      </div>
+    </div>
+    <fieldset class="feld">
+      <legend data-i18n="diviAs">Dividende angeben als</legend>
+      <div class="segment">
+        <label><input type="radio" name="divi-divmodus" value="je" checked><span data-i18n="diviAsPer">€ je Aktie und Jahr</span></label>
+        <label><input type="radio" name="divi-divmodus" value="rendite"><span data-i18n="diviAsYield">Rendite in %</span></label>
+      </div>
+    </fieldset>
+    <div class="reihe">
+      <div class="feld" data-zeige="divi-divmodus=je">
+        <label for="divi-je" data-i18n="diviPer">Dividende je Aktie</label>
+        <div class="eingabe"><input id="divi-je" inputmode="decimal" autocomplete="off" value="2,00"><span class="einheit" data-i18n="unitEurYear">€/Jahr</span></div>
+      </div>
+      <div class="feld" data-zeige="divi-divmodus=rendite" hidden>
+        <label for="divi-rendite" data-i18n="diviYield">Dividendenrendite</label>
+        <div class="eingabe"><input id="divi-rendite" inputmode="decimal" autocomplete="off" value="4,0"><span class="einheit">%</span></div>
+      </div>
+    </div>
+    <fieldset class="feld">
+      <legend data-i18n="diviFreq">Ausschüttung</legend>
+      <div class="segment">
+        <label><input type="radio" name="divi-freq" value="1" checked><span data-i18n="freq1">jährlich</span></label>
+        <label><input type="radio" name="divi-freq" value="2"><span data-i18n="freq2">halbjährlich</span></label>
+        <label><input type="radio" name="divi-freq" value="4"><span data-i18n="freq4">quartalsweise</span></label>
+        <label><input type="radio" name="divi-freq" value="12"><span data-i18n="freq12">monatlich</span></label>
+      </div>
+    </fieldset>
+  </div>
+  <div class="karte">
+    <label class="schalter"><input type="checkbox" id="divi-steuer" checked> <span data-i18n="diviTax">Steuern nach deutschem Recht abziehen</span></label>
+    <div id="divi-steuerblock">
+      <fieldset class="feld">
+        <legend data-i18n="diviPaper">Papier</legend>
+        <div class="segment">
+          <label><input type="radio" name="divi-papier" value="0" checked><span data-i18n="paperShare">Einzelaktie</span></label>
+          <label><input type="radio" name="divi-papier" value="0.3"><span data-i18n="paperEtf" data-n="pct:30">Aktien-ETF oder -Fonds (30 % steuerfrei)</span></label>
+          <label><input type="radio" name="divi-papier" value="0.15"><span data-i18n="paperMixed" data-n="pct:15">Mischfonds (15 % steuerfrei)</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="feld">
+        <legend data-i18n="diviChurch">Kirchensteuer</legend>
+        <div class="segment">
+          <label><input type="radio" name="divi-kist" value="0" checked><span data-i18n="churchNone">keine</span></label>
+          <label><input type="radio" name="divi-kist" value="0.08"><span data-i18n="church8" data-n="pct:8">8 % (Bayern, Baden-Württemberg)</span></label>
+          <label><input type="radio" name="divi-kist" value="0.09"><span data-i18n="church9" data-n="pct:9">9 % (übrige Länder)</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="feld">
+        <legend data-i18n="diviAllowance">Sparer-Pauschbetrag</legend>
+        <div class="segment">
+          <label><input type="radio" name="divi-pausch" value="1000" checked><span data-i18n="allowSingle" data-n="eur0:1000">1.000 € (einzeln)</span></label>
+          <label><input type="radio" name="divi-pausch" value="2000"><span data-i18n="allowJoint" data-n="eur0:2000">2.000 € (zusammen veranlagt)</span></label>
+          <label><input type="radio" name="divi-pausch" value="0"><span data-i18n="allowNone">kein Freistellungsauftrag</span></label>
+        </div>
+      </fieldset>
+      <div class="reihe">
+        <div class="feld">
+          <label for="divi-genutzt" data-i18n="diviUsed">Davon dieses Jahr schon verbraucht</label>
+          <div class="eingabe"><input id="divi-genutzt" inputmode="decimal" autocomplete="off" value="0"><span class="einheit">€</span></div>
+        </div>
+        <div class="feld">
+          <label for="divi-quellen" data-i18n="diviWht">Ausländische Quellensteuer</label>
+          <div class="eingabe"><input id="divi-quellen" inputmode="decimal" autocomplete="off" value="0" data-i18n-ph="diviWhtPh"><span class="einheit">%</span></div>
+        </div>
+      </div>
+      <p class="hinweis" data-i18n="diviTaxHint">Vereinfacht: 25 % Abgeltungsteuer plus 5,5 % Soli darauf, bei Kirchensteuer nach der Formel in § 32d EStG; bei Fonds greift vorher die Teilfreistellung nach § 20 InvStG. Ausländische Quellensteuer wird bis 15 % angerechnet (der übliche DBA-Satz). Was ein Land darüber hinaus einbehält, etwa die Schweiz mit 35 %, kannst du dort zurückfordern; das rechnet Pocketsum nicht. Keine Steuerberatung.</p>
+    </div>
+  </div>
+  <div class="karte">
+    <div class="ergebnis">
+      <div class="wert haupt"><b data-i18n="resNetYear">Netto pro Jahr</b><span class="z" id="divi-netto">–</span><span class="zusatz" id="divi-netto-rendite"></span></div>
+      <div class="wert"><b data-i18n="resNetMonth">Netto pro Monat</b><span class="z" id="divi-netto-monat">–</span><span class="zusatz" id="divi-netto-je"></span></div>
+      <div class="wert"><b data-i18n="resGrossYear">Brutto pro Jahr</b><span class="z" id="divi-brutto">–</span><span class="zusatz" id="divi-brutto-je"></span></div>
+      <div class="wert"><b data-i18n="resTaxes">Steuern</b><span class="z" id="divi-steuer-gesamt">–</span><span class="zusatz" id="divi-steuer-detail"></span></div>
+      <div class="wert"><b data-i18n="resCapital">Kapital</b><span class="z" id="divi-kapital">–</span><span class="zusatz" id="divi-anzahl-anzeige"></span></div>
+    </div>
+    <div class="feld">
+      <label for="divi-ziel" data-i18n="diviGoal">Und umgekehrt: Wunsch-Netto pro Monat</label>
+      <div class="eingabe"><input id="divi-ziel" inputmode="decimal" autocomplete="off" value="100"><span class="einheit" data-i18n="unitEurMonth">€/Monat</span></div>
+    </div>
+    <p class="spruch" id="divi-ziel-text"></p>
+    <div class="aktionen">
+      <button type="button" class="klein" data-reset="divi" data-i18n="reset">Zurücksetzen</button>
+      <button type="button" class="klein primaer" data-kopie="divi" data-i18n="copy">Ergebnis kopieren</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Trade ===================== -->
+<section class="rechner" id="r-trade" role="tabpanel" aria-labelledby="tab-trade" data-tab="trade" hidden>
+  <h2><span data-i18n="tradeTitle">Trade-Kosten</span> <small data-i18n="tradeSub">Was ein Kauf von Aktien, ETF oder Krypto wirklich kostet</small></h2>
+  <div class="karte">
+    <div class="feld">
+      <label for="trade-betrag" data-i18n="amount">Betrag</label>
+      <div class="eingabe"><input id="trade-betrag" inputmode="decimal" autocomplete="off" value="250"><span class="einheit">€</span></div>
+    </div>
+    <fieldset class="feld">
+      <legend data-i18n="tradeFees">Gebühren</legend>
+      <div class="segment">
+        <label><input type="radio" name="trade-modus" value="inkl" checked><span data-i18n="feesIncl">sind im Betrag drin</span></label>
+        <label><input type="radio" name="trade-modus" value="plus"><span data-i18n="feesPlus">kommen obendrauf</span></label>
+      </div>
+    </fieldset>
+    <div class="feld">
+      <label for="trade-kurs" data-i18n="tradePrice">Kurs (optional)</label>
+      <div class="eingabe"><input id="trade-kurs" inputmode="decimal" autocomplete="off" data-i18n-ph="tradePricePh" data-ph-v="95000"><span class="einheit">€</span></div>
+    </div>
+  </div>
+  <div class="karte">
+    <h3 data-i18n="feeModel">Gebührenmodell</h3>
+    <div class="feld">
+      <span class="label" id="trade-presets-label" data-i18n="presetsLabel">Beispielwerte zum Start – trag die Preisliste deines Anbieters ein</span>
+      <div class="chips" id="trade-presets" role="group" aria-labelledby="trade-presets-label">
+        <button type="button" class="chip" data-preset="krypto-sofort" aria-pressed="true" data-i18n="presetCryptoInstant">Krypto-Börse, Sofortkauf</button>
+        <button type="button" class="chip" data-preset="krypto-order" aria-pressed="false" data-i18n="presetCryptoOrder">Krypto-Börse, Orderbuch</button>
+        <button type="button" class="chip" data-preset="neobroker" aria-pressed="false" data-i18n="presetNeo" data-n="eur0:1">Neobroker, 1 € fest</button>
+        <button type="button" class="chip" data-preset="sparplan" aria-pressed="false" data-i18n="presetPlan" data-n="pct:1.5">Sparplan 1,5 %</button>
+        <button type="button" class="chip" data-preset="direktbank" aria-pressed="false" data-i18n="presetDirect">Direktbank</button>
+        <button type="button" class="chip" data-preset="eigen" aria-pressed="false" data-i18n="presetOwn">Eigene Werte</button>
+      </div>
+    </div>
+    <div class="reihe">
+      <div class="feld">
+        <label for="trade-prozent" data-i18n="feePct">Gebühr</label>
+        <div class="eingabe"><input id="trade-prozent" inputmode="decimal" autocomplete="off" value="1,49"><span class="einheit">%</span></div>
+      </div>
+      <div class="feld">
+        <label for="trade-fix" data-i18n="feeFix">plus fest</label>
+        <div class="eingabe"><input id="trade-fix" inputmode="decimal" autocomplete="off" value="0"><span class="einheit">€</span></div>
+      </div>
+      <div class="feld">
+        <label for="trade-min" data-i18n="feeMin">mindestens</label>
+        <div class="eingabe"><input id="trade-min" inputmode="decimal" autocomplete="off" value="0"><span class="einheit">€</span></div>
+      </div>
+      <div class="feld">
+        <label for="trade-spread" data-i18n="feeSpread">Aufschlag je Kauf oder Verkauf</label>
+        <div class="eingabe"><input id="trade-spread" inputmode="decimal" autocomplete="off" value="0,5"><span class="einheit">%</span></div>
+      </div>
+    </div>
+    <p class="hinweis" data-i18n="spreadHint">Nennt dein Anbieter einen Geld-Brief-Spread, trag hier die Hälfte ein: Der fällt bei Kauf plus Verkauf zusammen nur einmal an.</p>
+    <label class="schalter"><input type="checkbox" id="trade-runde" checked> <span data-i18n="roundTrip">Verkauf zu gleichen Konditionen mitrechnen</span></label>
+  </div>
+  <div class="karte">
+    <p class="warnung" id="trade-warnung"></p>
+    <div class="ergebnis">
+      <div class="wert haupt"><b data-i18n="resBuyCost">Kosten beim Kauf</b><span class="z" id="trade-kosten">–</span><span class="zusatz" id="trade-kosten-detail"></span></div>
+      <div class="wert"><b data-i18n="resInvested">Davon wirklich angelegt</b><span class="z" id="trade-angelegt">–</span><span class="zusatz" id="trade-gezahlt"></span></div>
+      <div class="wert" id="trade-k-einheiten" hidden><b data-i18n="resYouGet">Du bekommst</b><span class="z" id="trade-einheiten">–</span><span class="zusatz" id="trade-eff"></span></div>
+      <div class="wert" id="trade-k-be"><b data-i18n="resBreakEven">Kurs muss steigen um</b><span class="z" id="trade-breakeven">–</span><span class="zusatz" data-i18n="breakEvenNote">bis du beim Verkauf wieder bei null bist</span></div>
+      <div class="wert" id="trade-k-runde"><b data-i18n="resRoundTrip">Kauf + Verkauf zusammen</b><span class="z" id="trade-runde-kosten">–</span><span class="zusatz" id="trade-runde-detail"></span></div>
+    </div>
+    <div class="aktionen">
+      <button type="button" class="klein" data-reset="trade" data-i18n="reset">Zurücksetzen</button>
+      <button type="button" class="klein primaer" data-kopie="trade" data-i18n="copy">Ergebnis kopieren</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p data-i18n="footPrivacy">Rechnet nur auf deinem Gerät. Deine Eingaben bleiben in deinem Browser und werden nirgendwohin geschickt; Pocketsum zählt nicht mit.</p>
+  <p data-i18n="footAdvice">Keine Steuer- oder Anlageberatung. Die Gebühren-Beispiele sind Platzhalter, keine Preislisten.</p>
+  <p id="offline-zeile"><span data-i18n="footOffline">Nach dem ersten Besuch läuft Pocketsum auch ohne Netz.</span> <a id="download" href="./index.html" download="pocketsum.html" data-i18n="footDownload">Als eine Datei herunterladen</a></p>
+  <p><a href="https://dennismit2n.github.io/" data-i18n="footWerkstatt">Eine Werkstatt von Dennis_mit_2n</a> <span class="sep" aria-hidden="true">·</span> <a href="https://github.com/Dennismit2n/pocketsum" data-i18n="footSource">Quelltext auf GitHub</a></p>
+  <p data-i18n="footTranslations">Übersetzungen teils maschinell – Korrekturen sind willkommen.</p>
+  <p><span id="version">Version 1.0</span> <span class="sep" aria-hidden="true">·</span> © 2026 Dennis_mit_2n</p>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script id="kg-mathe">
+/* Rechenkern. Reine Funktionen ohne DOM, damit tests/rechnen.test.mjs sie in Node prüfen kann. */
+var KG = (function () {
+  'use strict';
+
+  /* Zahl aus einer Eingabe lesen. Versteht „1.234,56“ und „1,234.56“, „12 €“, „19 %“, „250,-“, „−5“
+     und Leerzeichen als Tausendertrenner („1 234,56“).
+
+     Mehrdeutig ist nur ein einzelnes Trennzeichen mit genau drei Ziffern dahinter: „5.000“ heißt auf
+     Deutsch fünftausend, auf Englisch fünf. Das entscheidet die Sprache der Oberfläche:
+       dezPunkt = false (Deutsch, Französisch, Polnisch …): das Komma ist das Dezimalzeichen,
+                         „5.000“ ist 5000, „1,5“ ist 1,5;
+       dezPunkt = true  (Englisch, Hindi, Chinesisch, Japanisch, Koreanisch): der Punkt ist es,
+                         „5,000“ ist 5000, „1.5“ ist 1,5.
+     Ein Trennzeichen, das NICHT das Dezimalzeichen der Sprache ist, gilt nur dann als Tausendertrenner,
+     wenn eine bis drei Ziffern davor (ohne führende Null) und genau drei dahinter stehen; sonst ist es
+     doch ein Dezimalzeichen („2,00“ bleibt auch auf Englisch zwei).
+     dez3 = true nur für Felder, deren Werte immer klein sind und drei Nachkommastellen haben (€/l):
+     dort ist jedes einzelne Trennzeichen ein Dezimalzeichen, „1.899“ und „1,899“ sind beide 1,899. */
+  function parseZahl(s, dez3, dezPunkt) {
+    if (typeof s === 'number') return s;
+    if (s == null) return NaN;
+    s = String(s);
+    /* Vollbreite Ziffern und Zeichen aus japanischen, chinesischen und koreanischen Eingabehilfen
+       (１２．５ ％) in die gewöhnlichen umwandeln. */
+    if (s.normalize) s = s.normalize('NFKC');
+    s = s.trim()
+      .replace(/^[−–]/, '-')
+      .replace(/,[-–]$/, '')
+      .replace(/[\s  ⁠'’€%]/g, '');
+    if (!s) return NaN;
+    var neg = s.charAt(0) === '-';
+    s = s.replace(/^[-+]/, '');
+    var anzKomma = (s.match(/,/g) || []).length, anzPunkt = (s.match(/\./g) || []).length;
+    var dez = dezPunkt ? '.' : ',';
+    /* Tausendertrennzeichen nur akzeptieren, wenn die Gruppen stimmen: 1.234.567 ja, 1.23.4 nein. */
+    function ohneTausender(teil, tz) {
+      /* Beim Komma auch die indische Gruppierung, wie Intl sie für Hindi ausgibt: 1,00,000 und 12,34,567. */
+      var re = tz === '.' ? /^\d{1,3}(?:\.\d{3})+$/ : /^(?:\d{1,3}(?:,\d{3})+|\d{1,2}(?:,\d{2})+,\d{3})$/;
+      return re.test(teil) ? teil.split(tz).join('') : null;
+    }
+    if (anzKomma && anzPunkt) {
+      /* Beide kommen vor: das hintere ist das Dezimalzeichen, das ist eindeutig. */
+      var hinten = s.lastIndexOf(',') > s.lastIndexOf('.') ? ',' : '.';
+      var vorne = hinten === ',' ? '.' : ',';
+      var teile = s.split(hinten);
+      if (teile.length !== 2) return NaN;
+      var ganz = ohneTausender(teile[0], vorne);
+      if (ganz === null) return NaN;
+      s = ganz + '.' + teile[1];
+    } else if (anzKomma + anzPunkt === 1) {
+      var tz = anzKomma ? ',' : '.';
+      var tausender = !dez3 && tz !== dez && (tz === '.' ? /^[1-9]\d{0,2}\.\d{3}$/ : /^[1-9]\d{0,2},\d{3}$/).test(s);
+      s = tausender ? s.replace(tz, '') : s.replace(tz, '.');
+    } else if (anzKomma > 1 || anzPunkt > 1) {
+      s = ohneTausender(s, anzKomma ? ',' : '.');
+      if (s === null) return NaN;
+    }
+    if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+    var v = parseFloat(s);
+    return neg ? -v : v;
+  }
+
+  function z(x) {
+    var v = typeof x === 'number' ? x : parseZahl(x);
+    return isFinite(v) ? v : 0;
+  }
+
+  function cent(x) { return Math.round(x * 100) / 100; }
+
+  /* ---------- Mehrwertsteuer ---------- */
+  function mwst(betrag, satz, istBrutto) {
+    var b = z(betrag), r = z(satz) / 100, netto, brutto;
+    if (istBrutto) { brutto = b; netto = b / (1 + r); }
+    else { netto = b; brutto = b * (1 + r); }
+    return { netto: netto, steuer: brutto - netto, brutto: brutto, satz: z(satz) };
+  }
+
+  /* ---------- Trinkgeld ---------- */
+  function trinkgeld(rechnung, prozent, personen, rundung) {
+    var r = z(rechnung), p = z(prozent), n = Math.max(1, Math.round(z(personen)) || 1), ru = z(rundung);
+    var tip = r * p / 100;
+    var gesamt = r + tip;
+    if (ru > 0) {
+      gesamt = Math.ceil(gesamt / ru - 1e-9) * ru;
+      gesamt = cent(gesamt);
+      if (gesamt < r) gesamt = r;
+      tip = gesamt - r;
+    }
+    return {
+      trinkgeld: tip, gesamt: gesamt,
+      proPerson: gesamt / n, tipProPerson: tip / n,
+      effektivProzent: r > 0 ? tip / r * 100 : NaN, personen: n
+    };
+  }
+
+  /* ---------- Sprit ---------- */
+  function spritKosten(preis, tank, verbrauch, kmMonat) {
+    var monat = preis * verbrauch * kmMonat / 100;
+    return { fuellung: preis * tank, pro100: preis * verbrauch, monat: monat, jahr: monat * 12 };
+  }
+  function sprit(preisAlt, preisNeu, tank, verbrauch, kmMonat) {
+    var a = z(preisAlt), n = z(preisNeu), t = z(tank), v = z(verbrauch), km = z(kmMonat);
+    var alt = spritKosten(a, t, v, km), neu = spritKosten(n, t, v, km);
+    return {
+      alt: alt, neu: neu,
+      diff: { fuellung: neu.fuellung - alt.fuellung, pro100: neu.pro100 - alt.pro100, monat: neu.monat - alt.monat, jahr: neu.jahr - alt.jahr },
+      cent: (n - a) * 100,
+      prozent: a > 0 ? (n / a - 1) * 100 : NaN
+    };
+  }
+  var SPRIT_BEREICH = { '0.01': [-10, 20], '0.05': [-4, 10], '0.1': [-3, 10] };
+  /* preisNeu ist optional: liegt er außerhalb des Standardbereichs, wird die Tabelle bis dorthin verlängert (gedeckelt). */
+  function spritTabelle(preisAktuell, schritt, tank, verbrauch, kmMonat, preisNeu) {
+    var a = z(preisAktuell), s = z(schritt) || 0.05, t = z(tank), v = z(verbrauch), km = z(kmMonat);
+    var bereich = (SPRIT_BEREICH[String(s)] || [-4, 10]).slice();
+    var pn = z(preisNeu);
+    if (pn > 0) {
+      var k = Math.round((pn - a) / s);
+      bereich[0] = Math.max(-40, Math.min(bereich[0], k));
+      bereich[1] = Math.min(60, Math.max(bereich[1], k));
+    }
+    var basis = spritKosten(a, t, v, km), zeilen = [];
+    for (var i = bereich[0]; i <= bereich[1]; i++) {
+      var preis = Math.round((a + i * s) * 1000) / 1000;
+      if (preis < 0) continue;
+      var k = spritKosten(preis, t, v, km);
+      zeilen.push({ preis: preis, fuellung: k.fuellung, pro100: k.pro100, monat: k.monat, diffMonat: k.monat - basis.monat, aktuell: i === 0 });
+    }
+    return zeilen;
+  }
+
+  /* ---------- Dividende ---------- */
+  function dividende(o) {
+    var st = o.steuer || {};
+    var kurs = z(o.kurs);
+    var anzahl = o.modus === 'betrag' ? (kurs > 0 ? z(o.betrag) / kurs : 0) : z(o.anzahl);
+    var kapital = anzahl * kurs;
+    var divJe = o.divModus === 'rendite' ? kurs * z(o.rendite) / 100 : z(o.divJeAktie);
+    var brutto = anzahl * divJe;
+    var n = z(o.ausschuettungen) || 1;
+    var steuerpflichtig = 0, est = 0, soli = 0, kist = 0, quellen = 0, anrechenbar = 0;
+    var teilfrei = Math.min(1, Math.max(0, z(st.teilfrei)));
+    if (st.aktiv) {
+      var rest = Math.max(0, z(st.pauschbetrag) - z(st.genutzt));
+      /* Teilfreistellung für Fonds (§ 20 InvStG): Aktienfonds 30 %, Mischfonds 15 % bleiben steuerfrei. */
+      steuerpflichtig = Math.max(0, brutto * (1 - teilfrei) - rest);
+      quellen = brutto * z(st.quellensteuer) / 100;
+      anrechenbar = Math.min(quellen, brutto * 0.15);
+      var k = z(st.kist);
+      /* § 32d Abs. 1 S. 4 EStG: ESt = (Erträge − 4 × anrechenbare ausländische Steuer) / (4 + Kirchensteuersatz) */
+      est = Math.max(0, (steuerpflichtig - 4 * anrechenbar) / (4 + k));
+      soli = est * 0.055;
+      kist = est * k;
+    }
+    var gesamt = est + soli + kist + quellen;
+    var netto = brutto - gesamt;
+    return {
+      anzahl: anzahl, kapital: kapital, divJeAktie: divJe, brutto: brutto,
+      bruttoJeAusschuettung: brutto / n,
+      renditeBrutto: kurs > 0 ? divJe / kurs * 100 : NaN,
+      steuerpflichtig: steuerpflichtig, teilfrei: teilfrei,
+      steuer: { est: est, soli: soli, kist: kist, quellen: quellen, anrechenbar: anrechenbar, gesamt: gesamt, satz: brutto > 0 ? gesamt / brutto * 100 : NaN },
+      netto: netto, nettoJeAusschuettung: netto / n, nettoMonat: netto / 12,
+      renditeNetto: kapital > 0 ? netto / kapital * 100 : NaN,
+      ausschuettungen: n
+    };
+  }
+
+  /* Wie viele Aktien braucht es für ein Netto-Ziel pro Monat? Bisektion, weil der Pauschbetrag die Steuer nichtlinear macht. */
+  function dividendeZiel(nettoMonat, o) {
+    var ziel = z(nettoMonat) * 12;
+    if (!(ziel > 0)) return null;
+    function probe(n) { return dividende(Object.assign({}, o, { modus: 'aktien', anzahl: n })).netto; }
+    var lo = 0, hi = 1, i;
+    for (i = 0; i < 80 && probe(hi) < ziel; i++) hi *= 2;
+    if (probe(hi) < ziel) return null;
+    for (i = 0; i < 80; i++) {
+      var mitte = (lo + hi) / 2;
+      if (probe(mitte) < ziel) lo = mitte; else hi = mitte;
+    }
+    var r = dividende(Object.assign({}, o, { modus: 'aktien', anzahl: hi }));
+    return { anzahl: hi, kapital: r.kapital, brutto: r.brutto, netto: r.netto };
+  }
+
+  /* ---------- Trade-Kosten ---------- */
+  function trade(o) {
+    var A = z(o.betrag), p = z(o.prozent) / 100, fix = z(o.fix), min = z(o.min), s = z(o.spread) / 100, kurs = z(o.kurs);
+    var warnung = false;
+    function gebuehr(V) { return Math.max(min, fix + p * V); }
+    var N;
+    if (o.modus === 'plus') {
+      N = A;
+    } else {
+      var N1 = (A - fix) / (1 + p + s);
+      N = (fix + p * N1 >= min) ? N1 : (A - min) / (1 + s);
+      if (!(N > 0)) { N = 0; warnung = A > 0; }
+    }
+    var gK = gebuehr(N), sK = s * N, kostenK = gK + sK;
+    var gezahlt = o.modus === 'plus' ? A + kostenK : A;
+    var kauf = {
+      gebuehr: gK, spread: sK, kosten: kostenK, angelegt: N, gezahlt: gezahlt,
+      einheiten: kurs > 0 ? N / kurs : null,
+      kostenProzent: gezahlt > 0 ? kostenK / gezahlt * 100 : NaN
+    };
+    var verkauf = null, rundeKosten = NaN, sofortVerlust = NaN, breakEvenProzent = NaN;
+    if (o.runde) {
+      var V = N, gV = gebuehr(V), sV = s * V, erloes = V - gV - sV;
+      verkauf = { gebuehr: gV, spread: sV, kosten: gV + sV, erloes: erloes };
+      rundeKosten = kostenK + gV + sV;
+      sofortVerlust = gezahlt - erloes;
+      if (N > 0 && (1 - p - s) > 0) {
+        var V1 = (gezahlt + fix) / (1 - p - s);
+        var Vb = (fix + p * V1 >= min) ? V1 : (gezahlt + min) / (1 - s);
+        breakEvenProzent = (Vb / N - 1) * 100;
+      }
+    }
+    return { kauf: kauf, verkauf: verkauf, rundeKosten: rundeKosten, sofortVerlust: sofortVerlust, breakEvenProzent: breakEvenProzent, warnung: warnung };
+  }
+
+  return { parseZahl: parseZahl, mwst: mwst, trinkgeld: trinkgeld, sprit: sprit, spritTabelle: spritTabelle, dividende: dividende, dividendeZiel: dividendeZiel, trade: trade };
+})();
+</script>
+<script id="kg-i18n">
+/* Pocketsum – Übersetzungen
+ *
+ * Ein Objekt je Sprache, `_name` steht so im Sprachwähler. Vierzehn Sprachen in der Reihenfolge
+ * der Werkstatt: de en es fr it nl pl pt tr ru hi zh ja ko. Die Liste steht ein zweites Mal im
+ * Skript im Kopf der Seite.
+ *
+ * Platzhalter in geschweiften Klammern ({v}, {n}, {c}, {f}, {p}, {d}) füllt das Skript mit
+ * fertig formatierten Zahlen in der Schreibweise der Sprache. Jede Sprache muss genau die
+ * Platzhalter ihres deutschen Gegenstücks tragen; das prüft tests/i18n.test.mjs.
+ *
+ * Fachbegriffe des deutschen Steuerrechts (Sparer-Pauschbetrag, § 32d EStG, § 20 InvStG)
+ * bleiben in allen Sprachen erkennbar, denn gerechnet wird nach deutschem Recht.
+ * Apostrophe sind typografisch (’), nie gerade.
+ *
+ * Teils maschinell übersetzt. Korrekturen sind willkommen:
+ * https://github.com/Dennismit2n/pocketsum
+ */
+var I18N = {
+  de: {
+    _name: 'Deutsch',
+    tagline: 'Fünf kleine Rechner, die nichts von dir wollen.',
+    themeLabel: 'Darstellung', themeSystem: 'System', themeLight: 'Hell', themeDark: 'Dunkel',
+    langLabel: 'Sprache',
+    tabsLabel: 'Rechner',
+    tabMwst: 'MwSt', tabTip: 'Trinkgeld', tabSprit: 'Sprit', tabDivi: 'Dividende', tabTrade: 'Trade',
+    reset: 'Zurücksetzen', copy: 'Ergebnis kopieren', copied: 'Kopiert', copyFailed: 'Kopieren ging nicht', resetDone: 'Zurückgesetzt',
+    amount: 'Betrag',
+    egValue: 'z. B. {v}',
+    centAbbr: 'ct',
+    roundTo: 'auf {v}',
+    unitKmMonth: 'km/Monat', unitPcs: 'Stk.', unitEurYear: '€/Jahr', unitEurMonth: '€/Monat',
+
+    mwstTitle: 'Mehrwertsteuer',
+    mwstSub: 'Netto, Steuer und Brutto in beide Richtungen',
+    mwstIs: 'Der Betrag ist',
+    mwstNet: 'netto, ohne MwSt',
+    mwstGross: 'brutto, mit MwSt',
+    mwstRate: 'Steuersatz',
+    mwstCustom: 'eigener',
+    mwstCustomAria: 'Eigener Steuersatz in Prozent',
+    mwstRateHint: '19 % und 7 % sind die Sätze in Deutschland. Für andere Länder trag deinen Satz bei „eigener“ ein.',
+    resNet: 'Netto', resTax: 'MwSt', resGross: 'Brutto',
+    mwstWayNet: 'Rechenweg: Netto × {f} = Brutto. Die Steuer ist der Unterschied.',
+    mwstWayGross: 'Rechenweg: Brutto ÷ {f} = Netto. Die Steuer ist der Unterschied.',
+
+    tipTitle: 'Trinkgeld',
+    tipSub: 'Mit Aufrunden und Aufteilen auf mehrere Personen',
+    tipBill: 'Rechnungsbetrag',
+    tipLegend: 'Trinkgeld',
+    tipCustom: 'eigenes',
+    tipCustomAria: 'Eigener Trinkgeld-Prozentsatz',
+    tipRoundLegend: 'Gesamtbetrag aufrunden',
+    tipRoundNone: 'nicht runden',
+    tipRoundWhole: 'auf volle €',
+    tipPeople: 'Personen',
+    tipFewer: 'Eine Person weniger',
+    tipMore: 'Eine Person mehr',
+    resTip: 'Trinkgeld', resTotal: 'Gesamt', resPerPerson: 'Pro Person',
+    tipOfWhich: 'davon {v} Trinkgeld',
+    tipSay: 'Sag einfach: „Mach {v}.“',
+    tipNone: 'Kein Trinkgeld, du zahlst {v}.',
+    tipEach: 'Jeder gibt {v}.',
+
+    spritTitle: 'Spritpreis',
+    spritSub: 'Was ein Preisanstieg dich pro Tankfüllung, pro 100 km und pro Monat kostet',
+    spritNow: 'Preis jetzt',
+    spritNew: 'Preis neu',
+    spritChips: 'Preis neu schnell setzen: Preis jetzt …',
+    spritTank: 'Tankgröße',
+    spritUse: 'Verbrauch',
+    spritKm: 'Fahrleistung',
+    resRise: 'Anstieg', resFall: 'Rückgang',
+    resMoreMonth: 'Mehr pro Monat', resLessMonth: 'Weniger pro Monat',
+    perLitre: '{v} je Liter',
+    perYear: 'aufs Jahr {v}',
+    thCost: 'Kosten', thNow: 'jetzt', thNew: 'neu',
+    rowFill: 'Füllung', rowMonth: 'Monat', rowYear: 'Jahr',
+    spritTableTitle: 'Preistabelle rund um den aktuellen Preis',
+    spritStep: 'Schrittweite',
+    thDiffMonth: '± Monat',
+    spritTableHint: 'Die markierte Zeile ist der aktuelle Preis, die umrandete der neue. „Füllung“ ist eine volle Tankfüllung, „± Monat“ der Unterschied zum aktuellen Preis bei deiner Fahrleistung.',
+
+    diviTitle: 'Dividende',
+    diviSub: 'Brutto, Steuer und Netto – pro Jahr, pro Ausschüttung, pro Monat',
+    diviStart: 'Ausgangspunkt',
+    diviHave: 'Ich habe Aktien',
+    diviInvest: 'Ich lege einen Betrag an',
+    diviCount: 'Anzahl Aktien',
+    diviAmount: 'Anlagebetrag',
+    diviPrice: 'Kurs je Aktie',
+    diviAs: 'Dividende angeben als',
+    diviAsPer: '€ je Aktie und Jahr',
+    diviAsYield: 'Rendite in %',
+    diviPer: 'Dividende je Aktie',
+    diviYield: 'Dividendenrendite',
+    diviFreq: 'Ausschüttung',
+    freq1: 'jährlich', freq2: 'halbjährlich', freq4: 'quartalsweise', freq12: 'monatlich',
+    diviTax: 'Steuern nach deutschem Recht abziehen',
+    diviPaper: 'Papier',
+    paperShare: 'Einzelaktie',
+    paperEtf: 'Aktien-ETF oder -Fonds ({v} steuerfrei)',
+    paperMixed: 'Mischfonds ({v} steuerfrei)',
+    diviChurch: 'Kirchensteuer',
+    churchNone: 'keine',
+    church8: '{v} (Bayern, Baden-Württemberg)',
+    church9: '{v} (übrige Länder)',
+    diviAllowance: 'Sparer-Pauschbetrag',
+    allowSingle: '{v} (einzeln)',
+    allowJoint: '{v} (zusammen veranlagt)',
+    allowNone: 'kein Freistellungsauftrag',
+    diviUsed: 'Davon dieses Jahr schon verbraucht',
+    diviWht: 'Ausländische Quellensteuer',
+    diviWhtPh: 'USA: 15',
+    diviTaxHint: 'Vereinfacht: 25 % Abgeltungsteuer plus 5,5 % Soli darauf, bei Kirchensteuer nach der Formel in § 32d EStG; bei Fonds greift vorher die Teilfreistellung nach § 20 InvStG. Ausländische Quellensteuer wird bis 15 % angerechnet (der übliche DBA-Satz). Was ein Land darüber hinaus einbehält, etwa die Schweiz mit 35 %, kannst du dort zurückfordern; das rechnet Pocketsum nicht. Keine Steuerberatung.',
+    resNetYear: 'Netto pro Jahr', resNetMonth: 'Netto pro Monat', resGrossYear: 'Brutto pro Jahr',
+    resTaxes: 'Steuern', resCapital: 'Kapital',
+    netYield: '{v} Netto-Rendite aufs Kapital',
+    grossYield: '{v} Brutto-Rendite',
+    perHalf: '{v} je Halbjahr', perQuarter: '{v} je Quartal', perMonth: '{v} je Monat',
+    onePayout: 'eine Ausschüttung im Jahr',
+    noTax: 'ohne Steuern gerechnet',
+    allCovered: 'alles vom Pauschbetrag gedeckt',
+    effRate: '{v} effektiv',
+    partExempt: '{v} teilfreigestellt',
+    whtAmount: '{v} Quellensteuer',
+    churchAmount: '{v} Kirchensteuer',
+    sharesLine: '{n} Aktien · {v} je Aktie und Jahr',
+    diviGoal: 'Und umgekehrt: Wunsch-Netto pro Monat',
+    goalText: 'Für {v} netto im Monat brauchst du etwa {n} Aktien, also {c} Kapital zum heutigen Kurs.',
+    goalNone: 'Ohne Dividende je Aktie lässt sich kein Ziel ausrechnen.',
+
+    tradeTitle: 'Trade-Kosten',
+    tradeSub: 'Was ein Kauf von Aktien, ETF oder Krypto wirklich kostet',
+    tradeFees: 'Gebühren',
+    feesIncl: 'sind im Betrag drin',
+    feesPlus: 'kommen obendrauf',
+    tradePrice: 'Kurs (optional)',
+    tradePricePh: 'z. B. {v} für 1 BTC',
+    feeModel: 'Gebührenmodell',
+    presetsLabel: 'Beispielwerte zum Start – trag die Preisliste deines Anbieters ein',
+    presetCryptoInstant: 'Krypto-Börse, Sofortkauf',
+    presetCryptoOrder: 'Krypto-Börse, Orderbuch',
+    presetNeo: 'Neobroker, {v} fest',
+    presetPlan: 'Sparplan {v}',
+    presetDirect: 'Direktbank',
+    presetOwn: 'Eigene Werte',
+    feePct: 'Gebühr', feeFix: 'plus fest', feeMin: 'mindestens',
+    feeSpread: 'Aufschlag je Kauf oder Verkauf',
+    spreadHint: 'Nennt dein Anbieter einen Geld-Brief-Spread, trag hier die Hälfte ein: Der fällt bei Kauf plus Verkauf zusammen nur einmal an.',
+    roundTrip: 'Verkauf zu gleichen Konditionen mitrechnen',
+    warnFees: 'Die Gebühren sind höher als der Betrag. Da bleibt nichts zum Anlegen.',
+    resBuyCost: 'Kosten beim Kauf',
+    resInvested: 'Davon wirklich angelegt',
+    resYouGet: 'Du bekommst',
+    resBreakEven: 'Kurs muss steigen um',
+    breakEvenNote: 'bis du beim Verkauf wieder bei null bist',
+    resRoundTrip: 'Kauf + Verkauf zusammen',
+    feeAmount: '{v} Gebühr',
+    spreadAmount: '{v} Aufschlag',
+    ofPaid: '{v} vom Gezahlten',
+    paidTotal: 'du zahlst insgesamt {v}',
+    paidOf: 'von {v} gezahlt',
+    units: '{v} Stück',
+    effPrice: '{v} je Stück effektiv, {p} zum Kurs',
+    sellNow: 'Sofort wieder verkauft: {v}',
+
+    footPrivacy: 'Rechnet nur auf deinem Gerät. Deine Eingaben bleiben in deinem Browser und werden nirgendwohin geschickt; Pocketsum zählt nicht mit.',
+    footAdvice: 'Keine Steuer- oder Anlageberatung. Die Gebühren-Beispiele sind Platzhalter, keine Preislisten.',
+    footOffline: 'Nach dem ersten Besuch läuft Pocketsum auch ohne Netz.',
+    footDownload: 'Als eine Datei herunterladen',
+    footWerkstatt: 'Eine Werkstatt von Dennis_mit_2n',
+    footSource: 'Quelltext auf GitHub',
+    footTranslations: 'Übersetzungen teils maschinell – Korrekturen sind willkommen.',
+    version: 'Version {v} · {d}'
+  },
+
+  en: {
+    _name: 'English',
+    tagline: 'Five small calculators that want nothing from you.',
+    themeLabel: 'Appearance', themeSystem: 'System', themeLight: 'Light', themeDark: 'Dark',
+    langLabel: 'Language',
+    tabsLabel: 'Calculators',
+    tabMwst: 'VAT', tabTip: 'Tip', tabSprit: 'Fuel', tabDivi: 'Dividends', tabTrade: 'Trade',
+    reset: 'Reset', copy: 'Copy result', copied: 'Copied', copyFailed: 'Could not copy', resetDone: 'Values reset',
+    amount: 'Amount',
+    egValue: 'e.g. {v}',
+    centAbbr: 'c',
+    roundTo: 'to {v}',
+    unitKmMonth: 'km/month', unitPcs: 'pcs', unitEurYear: '€/year', unitEurMonth: '€/month',
+
+    mwstTitle: 'Value added tax (VAT)',
+    mwstSub: 'Net, tax and gross – in both directions',
+    mwstIs: 'The amount is',
+    mwstNet: 'net, before VAT',
+    mwstGross: 'gross, including VAT',
+    mwstRate: 'Tax rate',
+    mwstCustom: 'custom',
+    mwstCustomAria: 'Custom tax rate in percent',
+    mwstRateHint: '19% and 7% are the German rates. For other countries, enter your rate under “custom”.',
+    resNet: 'Net', resTax: 'VAT', resGross: 'Gross',
+    mwstWayNet: 'How it works: net × {f} = gross. The tax is the difference.',
+    mwstWayGross: 'How it works: gross ÷ {f} = net. The tax is the difference.',
+
+    tipTitle: 'Tip',
+    tipSub: 'With rounding up and splitting between several people',
+    tipBill: 'Bill amount',
+    tipLegend: 'Tip',
+    tipCustom: 'custom',
+    tipCustomAria: 'Custom tip percentage',
+    tipRoundLegend: 'Round up the total',
+    tipRoundNone: 'don’t round',
+    tipRoundWhole: 'to whole euros',
+    tipPeople: 'People',
+    tipFewer: 'One person fewer',
+    tipMore: 'One more person',
+    resTip: 'Tip', resTotal: 'Total', resPerPerson: 'Per person',
+    tipOfWhich: '{v} of it is tip',
+    tipSay: 'Just say: “Make it {v}.”',
+    tipNone: 'No tip, you pay {v}.',
+    tipEach: 'Everyone pays {v}.',
+
+    spritTitle: 'Fuel price',
+    spritSub: 'What a price rise costs you per tank, per 100 km and per month',
+    spritNow: 'Price now',
+    spritNew: 'New price',
+    spritChips: 'Quickly set the new price: price now …',
+    spritTank: 'Tank size',
+    spritUse: 'Consumption',
+    spritKm: 'Distance driven',
+    resRise: 'Increase', resFall: 'Decrease',
+    resMoreMonth: 'Extra per month', resLessMonth: 'Less per month',
+    perLitre: '{v} per litre',
+    perYear: 'over a year {v}',
+    thCost: 'Cost', thNow: 'now', thNew: 'new',
+    rowFill: 'Full tank', rowMonth: 'Month', rowYear: 'Year',
+    spritTableTitle: 'Price table around the current price',
+    spritStep: 'Step',
+    thDiffMonth: '± month',
+    spritTableHint: 'The highlighted row is the current price, the outlined one the new price. “Full tank” means filling the whole tank, “± month” is the difference from the current price for the distance you drive.',
+
+    diviTitle: 'Dividends',
+    diviSub: 'Gross, tax and net – per year, per payout, per month',
+    diviStart: 'Starting point',
+    diviHave: 'I own shares',
+    diviInvest: 'I’m investing an amount',
+    diviCount: 'Number of shares',
+    diviAmount: 'Amount invested',
+    diviPrice: 'Price per share',
+    diviAs: 'Enter the dividend as',
+    diviAsPer: '€ per share per year',
+    diviAsYield: 'yield in %',
+    diviPer: 'Dividend per share',
+    diviYield: 'Dividend yield',
+    diviFreq: 'Payouts',
+    freq1: 'yearly', freq2: 'twice a year', freq4: 'quarterly', freq12: 'monthly',
+    diviTax: 'Deduct taxes under German law',
+    diviPaper: 'Type of security',
+    paperShare: 'Individual share',
+    paperEtf: 'Equity ETF or fund ({v} tax-free)',
+    paperMixed: 'Mixed fund ({v} tax-free)',
+    diviChurch: 'Church tax',
+    churchNone: 'none',
+    church8: '{v} (Bavaria, Baden-Württemberg)',
+    church9: '{v} (other states)',
+    diviAllowance: 'Saver’s allowance (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (single)',
+    allowJoint: '{v} (joint assessment)',
+    allowNone: 'no exemption order filed',
+    diviUsed: 'Already used this year',
+    diviWht: 'Foreign withholding tax',
+    diviWhtPh: 'US: 15',
+    diviTaxHint: 'Simplified: 25% flat tax on investment income plus a 5.5% solidarity surcharge on top; with church tax, the formula from § 32d EStG applies, and for funds the partial exemption under § 20 InvStG comes first. Foreign withholding tax is credited up to 15% (the usual tax-treaty rate). Anything a country withholds beyond that – Switzerland takes 35%, for example – you can reclaim there; Pocketsum does not calculate that. Not tax advice.',
+    resNetYear: 'Net per year', resNetMonth: 'Net per month', resGrossYear: 'Gross per year',
+    resTaxes: 'Taxes', resCapital: 'Capital',
+    netYield: '{v} net yield on capital',
+    grossYield: '{v} gross yield',
+    perHalf: '{v} per half-year', perQuarter: '{v} per quarter', perMonth: '{v} per month',
+    onePayout: 'one payout a year',
+    noTax: 'calculated without tax',
+    allCovered: 'fully covered by the allowance',
+    effRate: '{v} effective',
+    partExempt: '{v} partially exempt',
+    whtAmount: '{v} withholding tax',
+    churchAmount: '{v} church tax',
+    sharesLine: '{n} shares · {v} per share per year',
+    diviGoal: 'The other way round: desired net income per month',
+    goalText: 'For {v} net a month you need about {n} shares, that is {c} of capital at today’s price.',
+    goalNone: 'Without a dividend per share, no target can be worked out.',
+
+    tradeTitle: 'Trading costs',
+    tradeSub: 'What buying shares, ETFs or crypto really costs',
+    tradeFees: 'Fees',
+    feesIncl: 'are included in the amount',
+    feesPlus: 'come on top',
+    tradePrice: 'Price (optional)',
+    tradePricePh: 'e.g. {v} for 1 BTC',
+    feeModel: 'Fee model',
+    presetsLabel: 'Sample values to start with – enter your provider’s price list',
+    presetCryptoInstant: 'Crypto exchange, instant buy',
+    presetCryptoOrder: 'Crypto exchange, order book',
+    presetNeo: 'Neobroker, {v} flat',
+    presetPlan: 'Savings plan {v}',
+    presetDirect: 'Direct bank',
+    presetOwn: 'Your own values',
+    feePct: 'Fee', feeFix: 'plus fixed', feeMin: 'minimum',
+    feeSpread: 'Markup per buy or sell',
+    spreadHint: 'If your provider quotes a bid-ask spread, enter half of it here: across a buy and a sell it only applies once.',
+    roundTrip: 'Include selling on the same terms',
+    warnFees: 'The fees are higher than the amount. Nothing is left to invest.',
+    resBuyCost: 'Cost of buying',
+    resInvested: 'Actually invested',
+    resYouGet: 'You get',
+    resBreakEven: 'Price has to rise by',
+    breakEvenNote: 'before selling gets you back to zero',
+    resRoundTrip: 'Buying + selling together',
+    feeAmount: '{v} fee',
+    spreadAmount: '{v} markup',
+    ofPaid: '{v} of what you paid',
+    paidTotal: 'you pay {v} in total',
+    paidOf: 'of {v} paid',
+    units: '{v} units',
+    effPrice: '{v} per unit effectively, {p} vs. the price',
+    sellNow: 'Sold again right away: {v}',
+
+    footPrivacy: 'Calculates on your device only. What you enter stays in your browser and is never sent anywhere; Pocketsum does not count visits.',
+    footAdvice: 'Not tax or investment advice. The fee examples are placeholders, not price lists.',
+    footOffline: 'After the first visit, Pocketsum also works without a connection.',
+    footDownload: 'Download as a single file',
+    footWerkstatt: 'A workshop by Dennis_mit_2n',
+    footSource: 'Source code on GitHub',
+    footTranslations: 'Translations are partly machine-made – corrections are welcome.',
+    version: 'Version {v} · {d}'
+  }
+,
+
+  es: {
+    _name: 'Español',
+    tagline: 'Cinco pequeñas calculadoras que no quieren nada de ti.',
+    themeLabel: 'Apariencia', themeSystem: 'Sistema', themeLight: 'Claro', themeDark: 'Oscuro',
+    langLabel: 'Idioma',
+    tabsLabel: 'Calculadoras',
+    tabMwst: 'IVA', tabTip: 'Propina', tabSprit: 'Gasolina', tabDivi: 'Dividendos', tabTrade: 'Trading',
+    reset: 'Restablecer', copy: 'Copiar resultado', copied: 'Copiado', copyFailed: 'No se pudo copiar', resetDone: 'Valores restablecidos',
+    amount: 'Importe',
+    egValue: 'p. ej. {v}',
+    centAbbr: 'cts.',
+    roundTo: 'a {v}',
+    unitKmMonth: 'km/mes', unitPcs: 'uds.', unitEurYear: '€/año', unitEurMonth: '€/mes',
+
+    mwstTitle: 'Impuesto sobre el valor añadido (IVA)',
+    mwstSub: 'Neto, impuesto y bruto en ambas direcciones',
+    mwstIs: 'El importe es',
+    mwstNet: 'neto, sin IVA',
+    mwstGross: 'bruto, con IVA',
+    mwstRate: 'Tipo impositivo',
+    mwstCustom: 'otro',
+    mwstCustomAria: 'Tipo impositivo propio en porcentaje',
+    mwstRateHint: 'El 19 % y el 7 % son los tipos de Alemania. Para otros países, introduce tu tipo en «otro».',
+    resNet: 'Neto', resTax: 'IVA', resGross: 'Bruto',
+    mwstWayNet: 'Cálculo: neto × {f} = bruto. El impuesto es la diferencia.',
+    mwstWayGross: 'Cálculo: bruto ÷ {f} = neto. El impuesto es la diferencia.',
+
+    tipTitle: 'Propina',
+    tipSub: 'Con redondeo y reparto entre varias personas',
+    tipBill: 'Importe de la cuenta',
+    tipLegend: 'Propina',
+    tipCustom: 'otra',
+    tipCustomAria: 'Porcentaje de propina propio',
+    tipRoundLegend: 'Redondear el total hacia arriba',
+    tipRoundNone: 'sin redondear',
+    tipRoundWhole: 'a euros enteros',
+    tipPeople: 'Personas',
+    tipFewer: 'Una persona menos',
+    tipMore: 'Una persona más',
+    resTip: 'Propina', resTotal: 'Total', resPerPerson: 'Por persona',
+    tipOfWhich: '{v} son de propina',
+    tipSay: 'Di simplemente: «Cóbrame {v}».',
+    tipNone: 'Sin propina, pagas {v}.',
+    tipEach: 'Cada uno paga {v}.',
+
+    spritTitle: 'Precio del combustible',
+    spritSub: 'Lo que te cuesta una subida de precio por depósito, por 100 km y por mes',
+    spritNow: 'Precio actual',
+    spritNew: 'Precio nuevo',
+    spritChips: 'Fijar rápido el precio nuevo: precio actual …',
+    spritTank: 'Capacidad del depósito',
+    spritUse: 'Consumo',
+    spritKm: 'Kilometraje',
+    resRise: 'Subida', resFall: 'Bajada',
+    resMoreMonth: 'Más al mes', resLessMonth: 'Menos al mes',
+    perLitre: '{v} por litro',
+    perYear: 'al año {v}',
+    thCost: 'Coste', thNow: 'actual', thNew: 'nuevo',
+    rowFill: 'Depósito lleno', rowMonth: 'Mes', rowYear: 'Año',
+    spritTableTitle: 'Tabla de precios en torno al precio actual',
+    spritStep: 'Intervalo',
+    thDiffMonth: '± mes',
+    spritTableHint: 'La fila resaltada es el precio actual; la recuadrada, el nuevo. «Depósito lleno» es llenar el depósito entero; «± mes», la diferencia con el precio actual según tu kilometraje.',
+
+    diviTitle: 'Dividendos',
+    diviSub: 'Bruto, impuestos y neto: por año, por pago y por mes',
+    diviStart: 'Punto de partida',
+    diviHave: 'Tengo acciones',
+    diviInvest: 'Invierto un importe',
+    diviCount: 'Número de acciones',
+    diviAmount: 'Importe invertido',
+    diviPrice: 'Cotización por acción',
+    diviAs: 'Indicar el dividendo como',
+    diviAsPer: '€ por acción y año',
+    diviAsYield: 'rentabilidad en %',
+    diviPer: 'Dividendo por acción',
+    diviYield: 'Rentabilidad por dividendo',
+    diviFreq: 'Pagos',
+    freq1: 'anual', freq2: 'semestral', freq4: 'trimestral', freq12: 'mensual',
+    diviTax: 'Descontar impuestos según la ley alemana',
+    diviPaper: 'Tipo de valor',
+    paperShare: 'Acción individual',
+    paperEtf: 'ETF o fondo de acciones ({v} exento)',
+    paperMixed: 'Fondo mixto ({v} exento)',
+    diviChurch: 'Impuesto eclesiástico',
+    churchNone: 'ninguno',
+    church8: '{v} (Baviera, Baden-Wurtemberg)',
+    church9: '{v} (resto de estados)',
+    diviAllowance: 'Mínimo exento del ahorrador (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (individual)',
+    allowJoint: '{v} (declaración conjunta)',
+    allowNone: 'sin orden de exención',
+    diviUsed: 'Ya usado este año',
+    diviWht: 'Retención en origen extranjera',
+    diviWhtPh: 'EE. UU.: 15',
+    diviTaxHint: 'Simplificado: 25 % de impuesto sobre rendimientos del capital (Abgeltungsteuer) más un 5,5 % de recargo de solidaridad sobre esa cantidad; con impuesto eclesiástico se aplica la fórmula del § 32d EStG, y en los fondos va antes la exención parcial del § 20 InvStG. La retención extranjera se descuenta hasta el 15 % (el tipo habitual de los convenios de doble imposición). Lo que un país retenga por encima, como Suiza con un 35 %, puedes reclamarlo allí; Pocketsum no lo calcula. No es asesoramiento fiscal.',
+    resNetYear: 'Neto al año', resNetMonth: 'Neto al mes', resGrossYear: 'Bruto al año',
+    resTaxes: 'Impuestos', resCapital: 'Capital',
+    netYield: '{v} de rentabilidad neta sobre el capital',
+    grossYield: '{v} de rentabilidad bruta',
+    perHalf: '{v} por semestre', perQuarter: '{v} por trimestre', perMonth: '{v} por mes',
+    onePayout: 'un pago al año',
+    noTax: 'calculado sin impuestos',
+    allCovered: 'todo cubierto por el mínimo exento',
+    effRate: '{v} efectivo',
+    partExempt: '{v} exento (exención parcial)',
+    whtAmount: '{v} de retención extranjera',
+    churchAmount: '{v} de impuesto eclesiástico',
+    sharesLine: '{n} acciones · {v} por acción y año',
+    diviGoal: 'Y al revés: neto deseado al mes',
+    goalText: 'Para {v} netos al mes necesitas unas {n} acciones, es decir, {c} de capital a la cotización de hoy.',
+    goalNone: 'Sin dividendo por acción no se puede calcular un objetivo.',
+
+    tradeTitle: 'Costes de una operación',
+    tradeSub: 'Lo que cuesta de verdad comprar acciones, ETF o cripto',
+    tradeFees: 'Comisiones',
+    feesIncl: 'están incluidas en el importe',
+    feesPlus: 'se suman aparte',
+    tradePrice: 'Cotización (opcional)',
+    tradePricePh: 'p. ej. {v} por 1 BTC',
+    feeModel: 'Modelo de comisiones',
+    presetsLabel: 'Valores de ejemplo para empezar: introduce las tarifas de tu proveedor',
+    presetCryptoInstant: 'Exchange cripto, compra inmediata',
+    presetCryptoOrder: 'Exchange cripto, libro de órdenes',
+    presetNeo: 'Neobróker, {v} fijo',
+    presetPlan: 'Plan de ahorro {v}',
+    presetDirect: 'Banco online',
+    presetOwn: 'Valores propios',
+    feePct: 'Comisión', feeFix: '+ importe fijo', feeMin: 'mínimo',
+    feeSpread: 'Recargo por compra o venta',
+    spreadHint: 'Si tu proveedor indica un diferencial de compraventa (spread), introduce aquí la mitad: entre compra y venta solo se paga una vez.',
+    roundTrip: 'Incluir la venta en las mismas condiciones',
+    warnFees: 'Las comisiones superan el importe. No queda nada para invertir.',
+    resBuyCost: 'Coste de la compra',
+    resInvested: 'Invertido de verdad',
+    resYouGet: 'Recibes',
+    resBreakEven: 'La cotización debe subir',
+    breakEvenNote: 'para que al vender vuelvas a cero',
+    resRoundTrip: 'Compra + venta juntas',
+    feeAmount: '{v} de comisión',
+    spreadAmount: '{v} de recargo',
+    ofPaid: '{v} de lo pagado',
+    paidTotal: 'pagas {v} en total',
+    paidOf: 'de {v} pagados',
+    units: '{v} unidades',
+    effPrice: '{v} por unidad en realidad, {p} sobre la cotización',
+    sellNow: 'Vendido al instante: {v}',
+
+    footPrivacy: 'Calcula solo en tu dispositivo. Lo que introduces se queda en tu navegador y no se envía a ningún sitio; Pocketsum no cuenta visitas.',
+    footAdvice: 'No es asesoramiento fiscal ni de inversión. Las comisiones de ejemplo son solo valores de muestra, no tarifas reales.',
+    footOffline: 'Tras la primera visita, Pocketsum funciona también sin conexión.',
+    footDownload: 'Descargar como un solo archivo',
+    footWerkstatt: 'Un taller de Dennis_mit_2n',
+    footSource: 'Código fuente en GitHub',
+    footTranslations: 'Traducciones en parte automáticas: las correcciones son bienvenidas.',
+    version: 'Versión {v} · {d}'
+  },
+
+  fr: {
+    _name: 'Français',
+    tagline: 'Cinq petites calculatrices qui ne vous demandent rien.',
+    themeLabel: 'Apparence', themeSystem: 'Système', themeLight: 'Clair', themeDark: 'Sombre',
+    langLabel: 'Langue',
+    tabsLabel: 'Calculatrices',
+    tabMwst: 'TVA', tabTip: 'Pourboire', tabSprit: 'Carburant', tabDivi: 'Dividendes', tabTrade: 'Bourse',
+    reset: 'Réinitialiser', copy: 'Copier le résultat', copied: 'Copié', copyFailed: 'Copie impossible', resetDone: 'Valeurs réinitialisées',
+    amount: 'Montant',
+    egValue: 'p. ex. {v}',
+    centAbbr: 'ct',
+    roundTo: 'à {v}',
+    unitKmMonth: 'km/mois', unitPcs: 'titres', unitEurYear: '€/an', unitEurMonth: '€/mois',
+
+    mwstTitle: 'Taxe sur la valeur ajoutée (TVA)',
+    mwstSub: 'HT, taxe et TTC dans les deux sens',
+    mwstIs: 'Le montant est',
+    mwstNet: 'HT, hors TVA',
+    mwstGross: 'TTC, TVA comprise',
+    mwstRate: 'Taux',
+    mwstCustom: 'autre',
+    mwstCustomAria: 'Taux de TVA personnalisé en pourcentage',
+    mwstRateHint: '19 % et 7 % sont les taux allemands. Pour d’autres pays, saisissez votre taux dans « autre ».',
+    resNet: 'HT', resTax: 'TVA', resGross: 'TTC',
+    mwstWayNet: 'Calcul : HT × {f} = TTC. La taxe est la différence.',
+    mwstWayGross: 'Calcul : TTC ÷ {f} = HT. La taxe est la différence.',
+
+    tipTitle: 'Pourboire',
+    tipSub: 'Avec arrondi et partage entre plusieurs personnes',
+    tipBill: 'Montant de l’addition',
+    tipLegend: 'Pourboire',
+    tipCustom: 'autre',
+    tipCustomAria: 'Pourcentage de pourboire personnalisé',
+    tipRoundLegend: 'Arrondir le total vers le haut',
+    tipRoundNone: 'sans arrondi',
+    tipRoundWhole: 'à l’euro supérieur',
+    tipPeople: 'Personnes',
+    tipFewer: 'Une personne de moins',
+    tipMore: 'Une personne de plus',
+    resTip: 'Pourboire', resTotal: 'Total', resPerPerson: 'Par personne',
+    tipOfWhich: 'dont {v} de pourboire',
+    tipSay: 'Dites simplement : « Arrondissez à {v}. »',
+    tipNone: 'Pas de pourboire, vous payez {v}.',
+    tipEach: 'Chacun paie {v}.',
+
+    spritTitle: 'Prix du carburant',
+    spritSub: 'Ce qu’une hausse de prix vous coûte par plein, aux 100 km et par mois',
+    spritNow: 'Prix actuel',
+    spritNew: 'Nouveau prix',
+    spritChips: 'Fixer vite le nouveau prix : prix actuel …',
+    spritTank: 'Capacité du réservoir',
+    spritUse: 'Consommation',
+    spritKm: 'Kilométrage',
+    resRise: 'Hausse', resFall: 'Baisse',
+    resMoreMonth: 'En plus par mois', resLessMonth: 'En moins par mois',
+    perLitre: '{v} par litre',
+    perYear: 'sur un an {v}',
+    thCost: 'Coût', thNow: 'actuel', thNew: 'nouveau',
+    rowFill: 'Plein', rowMonth: 'Mois', rowYear: 'Année',
+    spritTableTitle: 'Tableau des prix autour du prix actuel',
+    spritStep: 'Pas',
+    thDiffMonth: '± mois',
+    spritTableHint: 'La ligne surlignée est le prix actuel, la ligne encadrée le nouveau. « Plein » signifie un réservoir rempli entièrement, « ± mois » l’écart avec le prix actuel selon votre kilométrage.',
+
+    diviTitle: 'Dividendes',
+    diviSub: 'Brut, impôts et net – par an, par versement, par mois',
+    diviStart: 'Point de départ',
+    diviHave: 'J’ai des actions',
+    diviInvest: 'J’investis un montant',
+    diviCount: 'Nombre d’actions',
+    diviAmount: 'Montant investi',
+    diviPrice: 'Cours par action',
+    diviAs: 'Indiquer le dividende en',
+    diviAsPer: '€ par action et par an',
+    diviAsYield: 'rendement en %',
+    diviPer: 'Dividende par action',
+    diviYield: 'Rendement du dividende',
+    diviFreq: 'Versements',
+    freq1: 'annuel', freq2: 'semestriel', freq4: 'trimestriel', freq12: 'mensuel',
+    diviTax: 'Déduire les impôts selon le droit allemand',
+    diviPaper: 'Type de titre',
+    paperShare: 'Action individuelle',
+    paperEtf: 'ETF ou fonds d’actions ({v} exonérés)',
+    paperMixed: 'Fonds mixte ({v} exonérés)',
+    diviChurch: 'Impôt d’Église',
+    churchNone: 'aucun',
+    church8: '{v} (Bavière, Bade-Wurtemberg)',
+    church9: '{v} (autres Länder)',
+    diviAllowance: 'Abattement de l’épargnant (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (personne seule)',
+    allowJoint: '{v} (imposition commune)',
+    allowNone: 'aucun ordre d’exonération',
+    diviUsed: 'Déjà utilisé cette année',
+    diviWht: 'Retenue à la source étrangère',
+    diviWhtPh: 'USA : 15',
+    diviTaxHint: 'Simplifié : 25 % d’impôt forfaitaire sur les revenus du capital (Abgeltungsteuer) plus 5,5 % de contribution de solidarité sur ce montant ; avec l’impôt d’Église s’applique la formule du § 32d EStG, et pour les fonds l’exonération partielle du § 20 InvStG passe d’abord. La retenue à la source étrangère est imputée jusqu’à 15 % (le taux habituel des conventions fiscales). Ce qu’un pays retient au-delà, comme la Suisse avec 35 %, vous pouvez le réclamer là-bas ; Pocketsum ne le calcule pas. Ce n’est pas un conseil fiscal.',
+    resNetYear: 'Net par an', resNetMonth: 'Net par mois', resGrossYear: 'Brut par an',
+    resTaxes: 'Impôts', resCapital: 'Capital',
+    netYield: '{v} de rendement net sur le capital',
+    grossYield: '{v} de rendement brut',
+    perHalf: '{v} par semestre', perQuarter: '{v} par trimestre', perMonth: '{v} par mois',
+    onePayout: 'un versement par an',
+    noTax: 'calculé sans impôts',
+    allCovered: 'entièrement couvert par l’abattement',
+    effRate: '{v} effectif',
+    partExempt: '{v} exonérés (exonération partielle)',
+    whtAmount: '{v} de retenue étrangère',
+    churchAmount: '{v} d’impôt d’Église',
+    sharesLine: '{n} actions · {v} par action et par an',
+    diviGoal: 'Et dans l’autre sens : net souhaité par mois',
+    goalText: 'Pour {v} net par mois, il vous faut environ {n} actions, soit {c} de capital au cours d’aujourd’hui.',
+    goalNone: 'Sans dividende par action, aucun objectif ne peut être calculé.',
+
+    tradeTitle: 'Frais d’un ordre',
+    tradeSub: 'Ce que coûte vraiment un achat d’actions, d’ETF ou de crypto',
+    tradeFees: 'Frais',
+    feesIncl: 'sont inclus dans le montant',
+    feesPlus: 's’ajoutent au montant',
+    tradePrice: 'Cours (facultatif)',
+    tradePricePh: 'p. ex. {v} pour 1 BTC',
+    feeModel: 'Modèle de frais',
+    presetsLabel: 'Valeurs d’exemple pour commencer – saisissez la grille tarifaire de votre fournisseur',
+    presetCryptoInstant: 'Plateforme crypto, achat immédiat',
+    presetCryptoOrder: 'Plateforme crypto, carnet d’ordres',
+    presetNeo: 'Néocourtier, {v} fixe',
+    presetPlan: 'Plan d’épargne {v}',
+    presetDirect: 'Banque en ligne',
+    presetOwn: 'Vos propres valeurs',
+    feePct: 'Commission', feeFix: '+ montant fixe', feeMin: 'minimum',
+    feeSpread: 'Majoration par achat ou vente',
+    spreadHint: 'Si votre fournisseur indique un écart achat-vente (spread), saisissez-en la moitié ici : sur un achat et une vente, il ne s’applique qu’une fois.',
+    roundTrip: 'Inclure la vente aux mêmes conditions',
+    warnFees: 'Les frais dépassent le montant. Il ne reste rien à investir.',
+    resBuyCost: 'Coût de l’achat',
+    resInvested: 'Réellement investi',
+    resYouGet: 'Vous recevez',
+    resBreakEven: 'Le cours doit monter de',
+    breakEvenNote: 'pour revenir à zéro en revendant',
+    resRoundTrip: 'Achat + vente ensemble',
+    feeAmount: '{v} de commission',
+    spreadAmount: '{v} de majoration',
+    ofPaid: '{v} du montant payé',
+    paidTotal: 'vous payez {v} au total',
+    paidOf: 'sur {v} payés',
+    units: '{v} unités',
+    effPrice: '{v} par unité en réalité, {p} par rapport au cours',
+    sellNow: 'Revendu aussitôt : {v}',
+
+    footPrivacy: 'Calcule uniquement sur votre appareil. Ce que vous saisissez reste dans votre navigateur et n’est envoyé nulle part ; Pocketsum ne compte pas les visites.',
+    footAdvice: 'Ni conseil fiscal ni conseil en investissement. Les frais d’exemple ne sont que des valeurs de démonstration, pas des grilles tarifaires.',
+    footOffline: 'Après la première visite, Pocketsum fonctionne aussi sans connexion.',
+    footDownload: 'Télécharger en un seul fichier',
+    footWerkstatt: 'Un atelier de Dennis_mit_2n',
+    footSource: 'Code source sur GitHub',
+    footTranslations: 'Traductions en partie automatiques – les corrections sont les bienvenues.',
+    version: 'Version {v} · {d}'
+  },
+
+  it: {
+    _name: 'Italiano',
+    tagline: 'Cinque piccole calcolatrici che non vogliono niente da te.',
+    themeLabel: 'Aspetto', themeSystem: 'Sistema', themeLight: 'Chiaro', themeDark: 'Scuro',
+    langLabel: 'Lingua',
+    tabsLabel: 'Calcolatrici',
+    tabMwst: 'IVA', tabTip: 'Mancia', tabSprit: 'Carburante', tabDivi: 'Dividendi', tabTrade: 'Trading',
+    reset: 'Reimposta', copy: 'Copia risultato', copied: 'Copiato', copyFailed: 'Copia non riuscita', resetDone: 'Valori reimpostati',
+    amount: 'Importo',
+    egValue: 'es. {v}',
+    centAbbr: 'cent',
+    roundTo: 'a {v}',
+    unitKmMonth: 'km/mese', unitPcs: 'pz.', unitEurYear: '€/anno', unitEurMonth: '€/mese',
+
+    mwstTitle: 'Imposta sul valore aggiunto (IVA)',
+    mwstSub: 'Netto, imposta e lordo in entrambe le direzioni',
+    mwstIs: 'L’importo è',
+    mwstNet: 'netto, senza IVA',
+    mwstGross: 'lordo, IVA inclusa',
+    mwstRate: 'Aliquota',
+    mwstCustom: 'altra',
+    mwstCustomAria: 'Aliquota personalizzata in percentuale',
+    mwstRateHint: '19% e 7% sono le aliquote tedesche. Per altri paesi inserisci la tua aliquota in «altra».',
+    resNet: 'Netto', resTax: 'IVA', resGross: 'Lordo',
+    mwstWayNet: 'Calcolo: netto × {f} = lordo. L’imposta è la differenza.',
+    mwstWayGross: 'Calcolo: lordo ÷ {f} = netto. L’imposta è la differenza.',
+
+    tipTitle: 'Mancia',
+    tipSub: 'Con arrotondamento e divisione tra più persone',
+    tipBill: 'Importo del conto',
+    tipLegend: 'Mancia',
+    tipCustom: 'altra',
+    tipCustomAria: 'Percentuale di mancia personalizzata',
+    tipRoundLegend: 'Arrotonda il totale per eccesso',
+    tipRoundNone: 'non arrotondare',
+    tipRoundWhole: 'all’euro intero',
+    tipPeople: 'Persone',
+    tipFewer: 'Una persona in meno',
+    tipMore: 'Una persona in più',
+    resTip: 'Mancia', resTotal: 'Totale', resPerPerson: 'A persona',
+    tipOfWhich: 'di cui {v} di mancia',
+    tipSay: 'Di’ semplicemente: «Facciamo {v}».',
+    tipNone: 'Niente mancia, paghi {v}.',
+    tipEach: 'Ognuno paga {v}.',
+
+    spritTitle: 'Prezzo del carburante',
+    spritSub: 'Quanto ti costa un aumento di prezzo per pieno, per 100 km e al mese',
+    spritNow: 'Prezzo attuale',
+    spritNew: 'Nuovo prezzo',
+    spritChips: 'Imposta in fretta il nuovo prezzo: prezzo attuale …',
+    spritTank: 'Capienza del serbatoio',
+    spritUse: 'Consumo',
+    spritKm: 'Chilometri percorsi',
+    resRise: 'Aumento', resFall: 'Calo',
+    resMoreMonth: 'In più al mese', resLessMonth: 'In meno al mese',
+    perLitre: '{v} al litro',
+    perYear: 'in un anno {v}',
+    thCost: 'Costo', thNow: 'attuale', thNew: 'nuovo',
+    rowFill: 'Pieno', rowMonth: 'Mese', rowYear: 'Anno',
+    spritTableTitle: 'Tabella dei prezzi intorno al prezzo attuale',
+    spritStep: 'Passo',
+    thDiffMonth: '± mese',
+    spritTableHint: 'La riga evidenziata è il prezzo attuale, quella riquadrata il nuovo. «Pieno» è un serbatoio riempito del tutto, «± mese» la differenza rispetto al prezzo attuale con i tuoi chilometri.',
+
+    diviTitle: 'Dividendi',
+    diviSub: 'Lordo, tasse e netto – all’anno, per stacco, al mese',
+    diviStart: 'Punto di partenza',
+    diviHave: 'Ho delle azioni',
+    diviInvest: 'Investo un importo',
+    diviCount: 'Numero di azioni',
+    diviAmount: 'Importo investito',
+    diviPrice: 'Prezzo per azione',
+    diviAs: 'Indica il dividendo come',
+    diviAsPer: '€ per azione all’anno',
+    diviAsYield: 'rendimento in %',
+    diviPer: 'Dividendo per azione',
+    diviYield: 'Rendimento da dividendo',
+    diviFreq: 'Pagamenti',
+    freq1: 'annuale', freq2: 'semestrale', freq4: 'trimestrale', freq12: 'mensile',
+    diviTax: 'Detrai le tasse secondo la legge tedesca',
+    diviPaper: 'Tipo di titolo',
+    paperShare: 'Singola azione',
+    paperEtf: 'ETF o fondo azionario ({v} esente)',
+    paperMixed: 'Fondo bilanciato ({v} esente)',
+    diviChurch: 'Tassa ecclesiastica',
+    churchNone: 'nessuna',
+    church8: '{v} (Baviera, Baden-Württemberg)',
+    church9: '{v} (altri Länder)',
+    diviAllowance: 'Franchigia del risparmiatore (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (singolo)',
+    allowJoint: '{v} (dichiarazione congiunta)',
+    allowNone: 'nessun ordine di esenzione',
+    diviUsed: 'Già usato quest’anno',
+    diviWht: 'Ritenuta estera alla fonte',
+    diviWhtPh: 'USA: 15',
+    diviTaxHint: 'Semplificato: 25% di imposta sostitutiva sui redditi da capitale (Abgeltungsteuer) più il 5,5% di contributo di solidarietà su di essa; con la tassa ecclesiastica vale la formula del § 32d EStG, e per i fondi si applica prima l’esenzione parziale del § 20 InvStG. La ritenuta estera viene scomputata fino al 15% (l’aliquota usuale delle convenzioni contro le doppie imposizioni). Ciò che un paese trattiene oltre, come la Svizzera con il 35%, puoi chiederlo indietro lì; Pocketsum non lo calcola. Non è una consulenza fiscale.',
+    resNetYear: 'Netto all’anno', resNetMonth: 'Netto al mese', resGrossYear: 'Lordo all’anno',
+    resTaxes: 'Tasse', resCapital: 'Capitale',
+    netYield: '{v} di rendimento netto sul capitale',
+    grossYield: '{v} di rendimento lordo',
+    perHalf: '{v} a semestre', perQuarter: '{v} a trimestre', perMonth: '{v} al mese',
+    onePayout: 'un pagamento all’anno',
+    noTax: 'calcolato senza tasse',
+    allCovered: 'tutto coperto dalla franchigia',
+    effRate: '{v} effettivo',
+    partExempt: '{v} esente (esenzione parziale)',
+    whtAmount: '{v} di ritenuta estera',
+    churchAmount: '{v} di tassa ecclesiastica',
+    sharesLine: '{n} azioni · {v} per azione all’anno',
+    diviGoal: 'E al contrario: netto desiderato al mese',
+    goalText: 'Per {v} netti al mese ti servono circa {n} azioni, cioè {c} di capitale al prezzo di oggi.',
+    goalNone: 'Senza un dividendo per azione non si può calcolare un obiettivo.',
+
+    tradeTitle: 'Costi di un’operazione',
+    tradeSub: 'Quanto costa davvero comprare azioni, ETF o cripto',
+    tradeFees: 'Commissioni',
+    feesIncl: 'sono comprese nell’importo',
+    feesPlus: 'si aggiungono all’importo',
+    tradePrice: 'Prezzo (facoltativo)',
+    tradePricePh: 'es. {v} per 1 BTC',
+    feeModel: 'Modello di commissioni',
+    presetsLabel: 'Valori di esempio per iniziare – inserisci il listino del tuo fornitore',
+    presetCryptoInstant: 'Exchange cripto, acquisto immediato',
+    presetCryptoOrder: 'Exchange cripto, book di negoziazione',
+    presetNeo: 'Neobroker, {v} fisso',
+    presetPlan: 'Piano di accumulo {v}',
+    presetDirect: 'Banca online',
+    presetOwn: 'I tuoi valori',
+    feePct: 'Commissione', feeFix: '+ quota fissa', feeMin: 'minimo',
+    feeSpread: 'Ricarico per acquisto o vendita',
+    spreadHint: 'Se il tuo fornitore indica uno spread denaro-lettera, inseriscine qui la metà: tra acquisto e vendita si paga una volta sola.',
+    roundTrip: 'Includi la vendita alle stesse condizioni',
+    warnFees: 'Le commissioni superano l’importo. Non resta niente da investire.',
+    resBuyCost: 'Costo dell’acquisto',
+    resInvested: 'Investito davvero',
+    resYouGet: 'Ricevi',
+    resBreakEven: 'Il prezzo deve salire di',
+    breakEvenNote: 'per tornare a zero vendendo',
+    resRoundTrip: 'Acquisto + vendita insieme',
+    feeAmount: '{v} di commissione',
+    spreadAmount: '{v} di ricarico',
+    ofPaid: '{v} di quanto pagato',
+    paidTotal: 'paghi {v} in totale',
+    paidOf: 'su {v} pagati',
+    units: '{v} unità',
+    effPrice: '{v} per unità in realtà, {p} rispetto al prezzo',
+    sellNow: 'Rivenduto subito: {v}',
+
+    footPrivacy: 'Calcola solo sul tuo dispositivo. Ciò che inserisci resta nel tuo browser e non viene inviato da nessuna parte; Pocketsum non conta le visite.',
+    footAdvice: 'Non è consulenza fiscale né d’investimento. Le commissioni di esempio sono solo valori dimostrativi, non listini.',
+    footOffline: 'Dopo la prima visita Pocketsum funziona anche senza connessione.',
+    footDownload: 'Scarica come un unico file',
+    footWerkstatt: 'Un’officina di Dennis_mit_2n',
+    footSource: 'Codice sorgente su GitHub',
+    footTranslations: 'Traduzioni in parte automatiche – le correzioni sono benvenute.',
+    version: 'Versione {v} · {d}'
+  },
+
+  nl: {
+    _name: 'Nederlands',
+    tagline: 'Vijf kleine rekenhulpjes die niets van je willen.',
+    themeLabel: 'Weergave', themeSystem: 'Systeem', themeLight: 'Licht', themeDark: 'Donker',
+    langLabel: 'Taal',
+    tabsLabel: 'Rekenhulpen',
+    tabMwst: 'Btw', tabTip: 'Fooi', tabSprit: 'Brandstof', tabDivi: 'Dividend', tabTrade: 'Trade',
+    reset: 'Herstellen', copy: 'Resultaat kopiëren', copied: 'Gekopieerd', copyFailed: 'Kopiëren mislukt', resetDone: 'Waarden hersteld',
+    amount: 'Bedrag',
+    egValue: 'bijv. {v}',
+    centAbbr: 'ct',
+    roundTo: 'op {v}',
+    unitKmMonth: 'km/maand', unitPcs: 'st.', unitEurYear: '€/jaar', unitEurMonth: '€/maand',
+
+    mwstTitle: 'Btw',
+    mwstSub: 'Netto, belasting en bruto in beide richtingen',
+    mwstIs: 'Het bedrag is',
+    mwstNet: 'netto, zonder btw',
+    mwstGross: 'bruto, met btw',
+    mwstRate: 'Tarief',
+    mwstCustom: 'eigen',
+    mwstCustomAria: 'Eigen btw-tarief in procent',
+    mwstRateHint: '19% en 7% zijn de Duitse tarieven. Voor andere landen vul je je tarief in bij ‘eigen’.',
+    resNet: 'Netto', resTax: 'Btw', resGross: 'Bruto',
+    mwstWayNet: 'Berekening: netto × {f} = bruto. De belasting is het verschil.',
+    mwstWayGross: 'Berekening: bruto ÷ {f} = netto. De belasting is het verschil.',
+
+    tipTitle: 'Fooi',
+    tipSub: 'Met afronden en verdelen over meerdere personen',
+    tipBill: 'Bedrag van de rekening',
+    tipLegend: 'Fooi',
+    tipCustom: 'eigen',
+    tipCustomAria: 'Eigen fooipercentage',
+    tipRoundLegend: 'Totaal naar boven afronden',
+    tipRoundNone: 'niet afronden',
+    tipRoundWhole: 'op hele euro’s',
+    tipPeople: 'Personen',
+    tipFewer: 'Eén persoon minder',
+    tipMore: 'Eén persoon meer',
+    resTip: 'Fooi', resTotal: 'Totaal', resPerPerson: 'Per persoon',
+    tipOfWhich: 'waarvan {v} fooi',
+    tipSay: 'Zeg gewoon: ‘Maak er maar {v} van.’',
+    tipNone: 'Geen fooi, je betaalt {v}.',
+    tipEach: 'Ieder betaalt {v}.',
+
+    spritTitle: 'Brandstofprijs',
+    spritSub: 'Wat een prijsstijging je kost per tank, per 100 km en per maand',
+    spritNow: 'Prijs nu',
+    spritNew: 'Nieuwe prijs',
+    spritChips: 'Nieuwe prijs snel instellen: prijs nu …',
+    spritTank: 'Tankinhoud',
+    spritUse: 'Verbruik',
+    spritKm: 'Gereden kilometers',
+    resRise: 'Stijging', resFall: 'Daling',
+    resMoreMonth: 'Meer per maand', resLessMonth: 'Minder per maand',
+    perLitre: '{v} per liter',
+    perYear: 'per jaar {v}',
+    thCost: 'Kosten', thNow: 'nu', thNew: 'nieuw',
+    rowFill: 'Volle tank', rowMonth: 'Maand', rowYear: 'Jaar',
+    spritTableTitle: 'Prijstabel rond de huidige prijs',
+    spritStep: 'Stapgrootte',
+    thDiffMonth: '± maand',
+    spritTableHint: 'De gemarkeerde rij is de huidige prijs, de omkaderde de nieuwe. ‘Volle tank’ is een helemaal gevulde tank, ‘± maand’ het verschil met de huidige prijs bij jouw kilometers.',
+
+    diviTitle: 'Dividend',
+    diviSub: 'Bruto, belasting en netto – per jaar, per uitkering, per maand',
+    diviStart: 'Uitgangspunt',
+    diviHave: 'Ik heb aandelen',
+    diviInvest: 'Ik beleg een bedrag',
+    diviCount: 'Aantal aandelen',
+    diviAmount: 'Belegd bedrag',
+    diviPrice: 'Koers per aandeel',
+    diviAs: 'Dividend opgeven als',
+    diviAsPer: '€ per aandeel per jaar',
+    diviAsYield: 'rendement in %',
+    diviPer: 'Dividend per aandeel',
+    diviYield: 'Dividendrendement',
+    diviFreq: 'Uitkering',
+    freq1: 'jaarlijks', freq2: 'halfjaarlijks', freq4: 'per kwartaal', freq12: 'maandelijks',
+    diviTax: 'Belasting volgens Duits recht aftrekken',
+    diviPaper: 'Soort effect',
+    paperShare: 'Los aandeel',
+    paperEtf: 'Aandelen-ETF of -fonds ({v} belastingvrij)',
+    paperMixed: 'Mengfonds ({v} belastingvrij)',
+    diviChurch: 'Kerkbelasting',
+    churchNone: 'geen',
+    church8: '{v} (Beieren, Baden-Württemberg)',
+    church9: '{v} (overige deelstaten)',
+    diviAllowance: 'Spaarvrijstelling (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (alleenstaand)',
+    allowJoint: '{v} (gezamenlijke aangifte)',
+    allowNone: 'geen vrijstellingsopdracht',
+    diviUsed: 'Dit jaar al gebruikt',
+    diviWht: 'Buitenlandse bronbelasting',
+    diviWhtPh: 'VS: 15',
+    diviTaxHint: 'Vereenvoudigd: 25% vlaktaks op vermogensinkomsten (Abgeltungsteuer) plus 5,5% solidariteitstoeslag daarover; met kerkbelasting geldt de formule uit § 32d EStG, en bij fondsen wordt eerst de gedeeltelijke vrijstelling uit § 20 InvStG toegepast. Buitenlandse bronbelasting wordt tot 15% verrekend (het gangbare verdragstarief). Wat een land daarboven inhoudt, zoals Zwitserland met 35%, kun je daar terugvragen; dat berekent Pocketsum niet. Geen belastingadvies.',
+    resNetYear: 'Netto per jaar', resNetMonth: 'Netto per maand', resGrossYear: 'Bruto per jaar',
+    resTaxes: 'Belasting', resCapital: 'Kapitaal',
+    netYield: '{v} nettorendement op het kapitaal',
+    grossYield: '{v} brutorendement',
+    perHalf: '{v} per halfjaar', perQuarter: '{v} per kwartaal', perMonth: '{v} per maand',
+    onePayout: 'één uitkering per jaar',
+    noTax: 'zonder belasting gerekend',
+    allCovered: 'helemaal gedekt door de vrijstelling',
+    effRate: '{v} effectief',
+    partExempt: '{v} gedeeltelijk vrijgesteld',
+    whtAmount: '{v} bronbelasting',
+    churchAmount: '{v} kerkbelasting',
+    sharesLine: '{n} aandelen · {v} per aandeel per jaar',
+    diviGoal: 'En andersom: gewenst netto per maand',
+    goalText: 'Voor {v} netto per maand heb je ongeveer {n} aandelen nodig, dus {c} kapitaal tegen de koers van vandaag.',
+    goalNone: 'Zonder dividend per aandeel valt er geen doel te berekenen.',
+
+    tradeTitle: 'Transactiekosten',
+    tradeSub: 'Wat het kopen van aandelen, ETF’s of crypto echt kost',
+    tradeFees: 'Kosten',
+    feesIncl: 'zitten in het bedrag',
+    feesPlus: 'komen erbovenop',
+    tradePrice: 'Koers (optioneel)',
+    tradePricePh: 'bijv. {v} voor 1 BTC',
+    feeModel: 'Kostenmodel',
+    presetsLabel: 'Voorbeeldwaarden om mee te beginnen – vul de prijslijst van je aanbieder in',
+    presetCryptoInstant: 'Cryptobeurs, direct kopen',
+    presetCryptoOrder: 'Cryptobeurs, orderboek',
+    presetNeo: 'Neobroker, {v} vast',
+    presetPlan: 'Spaarplan {v}',
+    presetDirect: 'Onlinebank',
+    presetOwn: 'Eigen waarden',
+    feePct: 'Provisie', feeFix: 'plus vast', feeMin: 'minimaal',
+    feeSpread: 'Opslag per aan- of verkoop',
+    spreadHint: 'Noemt je aanbieder een bied-laatspread, vul dan hier de helft in: over aan- en verkoop samen betaal je die maar één keer.',
+    roundTrip: 'Verkoop tegen dezelfde voorwaarden meerekenen',
+    warnFees: 'De kosten zijn hoger dan het bedrag. Er blijft niets over om te beleggen.',
+    resBuyCost: 'Kosten bij aankoop',
+    resInvested: 'Echt belegd',
+    resYouGet: 'Je krijgt',
+    resBreakEven: 'Koers moet stijgen met',
+    breakEvenNote: 'voordat je bij verkoop weer op nul staat',
+    resRoundTrip: 'Aan- + verkoop samen',
+    feeAmount: '{v} provisie',
+    spreadAmount: '{v} opslag',
+    ofPaid: '{v} van het betaalde',
+    paidTotal: 'je betaalt in totaal {v}',
+    paidOf: 'van {v} betaald',
+    units: '{v} stuks',
+    effPrice: '{v} per stuk in werkelijkheid, {p} t.o.v. de koers',
+    sellNow: 'Meteen weer verkocht: {v}',
+
+    footPrivacy: 'Rekent alleen op je apparaat. Wat je invult blijft in je browser en wordt nergens naartoe gestuurd; Pocketsum telt geen bezoeken.',
+    footAdvice: 'Geen belasting- of beleggingsadvies. De kostenvoorbeelden zijn alleen invulvoorbeelden, geen prijslijsten.',
+    footOffline: 'Na het eerste bezoek werkt Pocketsum ook zonder verbinding.',
+    footDownload: 'Downloaden als één bestand',
+    footWerkstatt: 'Een werkplaats van Dennis_mit_2n',
+    footSource: 'Broncode op GitHub',
+    footTranslations: 'Vertalingen deels automatisch – correcties zijn welkom.',
+    version: 'Versie {v} · {d}'
+  },
+
+  pl: {
+    _name: 'Polski',
+    tagline: 'Pięć małych kalkulatorów, które niczego od ciebie nie chcą.',
+    themeLabel: 'Wygląd', themeSystem: 'Systemowy', themeLight: 'Jasny', themeDark: 'Ciemny',
+    langLabel: 'Język',
+    tabsLabel: 'Kalkulatory',
+    tabMwst: 'VAT', tabTip: 'Napiwek', tabSprit: 'Paliwo', tabDivi: 'Dywidendy', tabTrade: 'Transakcje',
+    reset: 'Resetuj', copy: 'Kopiuj wynik', copied: 'Skopiowano', copyFailed: 'Nie udało się skopiować', resetDone: 'Przywrócono wartości',
+    amount: 'Kwota',
+    egValue: 'np. {v}',
+    centAbbr: 'ct',
+    roundTo: 'do {v}',
+    unitKmMonth: 'km/mies.', unitPcs: 'szt.', unitEurYear: '€/rok', unitEurMonth: '€/mies.',
+
+    mwstTitle: 'Podatek od wartości dodanej (VAT)',
+    mwstSub: 'Netto, podatek i brutto w obie strony',
+    mwstIs: 'Kwota jest',
+    mwstNet: 'netto, bez VAT',
+    mwstGross: 'brutto, z VAT',
+    mwstRate: 'Stawka',
+    mwstCustom: 'własna',
+    mwstCustomAria: 'Własna stawka podatku w procentach',
+    mwstRateHint: '19% i 7% to stawki niemieckie. Dla innych krajów wpisz swoją stawkę w polu „własna”.',
+    resNet: 'Netto', resTax: 'VAT', resGross: 'Brutto',
+    mwstWayNet: 'Obliczenie: netto × {f} = brutto. Podatek to różnica.',
+    mwstWayGross: 'Obliczenie: brutto ÷ {f} = netto. Podatek to różnica.',
+
+    tipTitle: 'Napiwek',
+    tipSub: 'Z zaokrąglaniem i podziałem na kilka osób',
+    tipBill: 'Kwota rachunku',
+    tipLegend: 'Napiwek',
+    tipCustom: 'własny',
+    tipCustomAria: 'Własny procent napiwku',
+    tipRoundLegend: 'Zaokrąglij sumę w górę',
+    tipRoundNone: 'bez zaokrąglania',
+    tipRoundWhole: 'do pełnych euro',
+    tipPeople: 'Osoby',
+    tipFewer: 'Jedna osoba mniej',
+    tipMore: 'Jedna osoba więcej',
+    resTip: 'Napiwek', resTotal: 'Razem', resPerPerson: 'Na osobę',
+    tipOfWhich: 'w tym {v} napiwku',
+    tipSay: 'Powiedz po prostu: „Niech będzie {v}”.',
+    tipNone: 'Bez napiwku, płacisz {v}.',
+    tipEach: 'Każdy płaci {v}.',
+
+    spritTitle: 'Cena paliwa',
+    spritSub: 'Ile kosztuje cię wzrost ceny na bak, na 100 km i na miesiąc',
+    spritNow: 'Cena teraz',
+    spritNew: 'Nowa cena',
+    spritChips: 'Szybko ustaw nową cenę: cena teraz …',
+    spritTank: 'Pojemność baku',
+    spritUse: 'Spalanie',
+    spritKm: 'Przebieg',
+    resRise: 'Wzrost', resFall: 'Spadek',
+    resMoreMonth: 'Więcej na miesiąc', resLessMonth: 'Mniej na miesiąc',
+    perLitre: '{v} na litrze',
+    perYear: 'w skali roku {v}',
+    thCost: 'Koszt', thNow: 'teraz', thNew: 'nowa',
+    rowFill: 'Pełny bak', rowMonth: 'Miesiąc', rowYear: 'Rok',
+    spritTableTitle: 'Tabela cen wokół obecnej ceny',
+    spritStep: 'Krok',
+    thDiffMonth: '± miesiąc',
+    spritTableHint: 'Wyróżniony wiersz to obecna cena, obramowany – nowa. „Pełny bak” to całkowicie zatankowany bak, „± miesiąc” to różnica względem obecnej ceny przy twoim przebiegu.',
+
+    diviTitle: 'Dywidendy',
+    diviSub: 'Brutto, podatek i netto – rocznie, na wypłatę, miesięcznie',
+    diviStart: 'Punkt wyjścia',
+    diviHave: 'Mam akcje',
+    diviInvest: 'Inwestuję kwotę',
+    diviCount: 'Liczba akcji',
+    diviAmount: 'Zainwestowana kwota',
+    diviPrice: 'Kurs akcji',
+    diviAs: 'Podaj dywidendę jako',
+    diviAsPer: '€ na akcję rocznie',
+    diviAsYield: 'stopę dywidendy w %',
+    diviPer: 'Dywidenda na akcję',
+    diviYield: 'Stopa dywidendy',
+    diviFreq: 'Wypłaty',
+    freq1: 'raz w roku', freq2: 'co pół roku', freq4: 'co kwartał', freq12: 'co miesiąc',
+    diviTax: 'Odlicz podatki według prawa niemieckiego',
+    diviPaper: 'Rodzaj papieru',
+    paperShare: 'Pojedyncza akcja',
+    paperEtf: 'ETF lub fundusz akcji ({v} wolne od podatku)',
+    paperMixed: 'Fundusz mieszany ({v} wolne od podatku)',
+    diviChurch: 'Podatek kościelny',
+    churchNone: 'brak',
+    church8: '{v} (Bawaria, Badenia-Wirtembergia)',
+    church9: '{v} (pozostałe kraje związkowe)',
+    diviAllowance: 'Kwota wolna dla oszczędzających (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (rozliczenie indywidualne)',
+    allowJoint: '{v} (rozliczenie wspólne)',
+    allowNone: 'brak zlecenia zwolnienia',
+    diviUsed: 'Wykorzystane już w tym roku',
+    diviWht: 'Zagraniczny podatek u źródła',
+    diviWhtPh: 'USA: 15',
+    diviTaxHint: 'W uproszczeniu: 25% podatku od dochodów kapitałowych (Abgeltungsteuer) plus 5,5% dopłaty solidarnościowej od tej kwoty; przy podatku kościelnym obowiązuje wzór z § 32d EStG, a przy funduszach najpierw działa częściowe zwolnienie z § 20 InvStG. Zagraniczny podatek u źródła jest zaliczany do 15% (zwykła stawka umów o unikaniu podwójnego opodatkowania). To, co kraj potrąca ponad to, jak Szwajcaria 35%, możesz odzyskać na miejscu; Pocketsum tego nie liczy. To nie jest doradztwo podatkowe.',
+    resNetYear: 'Netto rocznie', resNetMonth: 'Netto miesięcznie', resGrossYear: 'Brutto rocznie',
+    resTaxes: 'Podatki', resCapital: 'Kapitał',
+    netYield: '{v} zwrotu netto od kapitału',
+    grossYield: '{v} zwrotu brutto',
+    perHalf: '{v} na półrocze', perQuarter: '{v} na kwartał', perMonth: '{v} na miesiąc',
+    onePayout: 'jedna wypłata w roku',
+    noTax: 'liczone bez podatków',
+    allCovered: 'całość pokryta kwotą wolną',
+    effRate: '{v} efektywnie',
+    partExempt: '{v} częściowo zwolnione',
+    whtAmount: '{v} podatku u źródła',
+    churchAmount: '{v} podatku kościelnego',
+    sharesLine: 'Akcje: {n} · {v} na akcję rocznie',
+    diviGoal: 'I odwrotnie: wymarzone netto na miesiąc',
+    goalText: 'Aby mieć {v} netto miesięcznie, potrzeba około {n} szt. akcji, czyli {c} kapitału po dzisiejszym kursie.',
+    goalNone: 'Bez dywidendy na akcję nie da się obliczyć celu.',
+
+    tradeTitle: 'Koszty transakcji',
+    tradeSub: 'Ile naprawdę kosztuje zakup akcji, ETF albo kryptowalut',
+    tradeFees: 'Opłaty',
+    feesIncl: 'są w kwocie',
+    feesPlus: 'dochodzą do kwoty',
+    tradePrice: 'Kurs (opcjonalnie)',
+    tradePricePh: 'np. {v} za 1 BTC',
+    feeModel: 'Model opłat',
+    presetsLabel: 'Przykładowe wartości na start – wpisz cennik swojego dostawcy',
+    presetCryptoInstant: 'Giełda kryptowalut, zakup natychmiastowy',
+    presetCryptoOrder: 'Giełda kryptowalut, arkusz zleceń',
+    presetNeo: 'Neobroker, {v} stała',
+    presetPlan: 'Plan oszczędnościowy {v}',
+    presetDirect: 'Bank internetowy',
+    presetOwn: 'Własne wartości',
+    feePct: 'Prowizja', feeFix: 'plus stała', feeMin: 'minimum',
+    feeSpread: 'Narzut na kupno lub sprzedaż',
+    spreadHint: 'Jeśli dostawca podaje spread kupna-sprzedaży, wpisz tu połowę: przy kupnie i sprzedaży razem płacisz go tylko raz.',
+    roundTrip: 'Uwzględnij sprzedaż na tych samych warunkach',
+    warnFees: 'Opłaty są wyższe niż kwota. Nie zostaje nic do zainwestowania.',
+    resBuyCost: 'Koszt zakupu',
+    resInvested: 'Naprawdę zainwestowane',
+    resYouGet: 'Dostajesz',
+    resBreakEven: 'Kurs musi wzrosnąć o',
+    breakEvenNote: 'aby sprzedaż wyszła na zero',
+    resRoundTrip: 'Kupno + sprzedaż razem',
+    feeAmount: '{v} prowizji',
+    spreadAmount: '{v} narzutu',
+    ofPaid: '{v} zapłaconej kwoty',
+    paidTotal: 'płacisz łącznie {v}',
+    paidOf: 'z zapłaconej kwoty {v}',
+    units: '{v} szt.',
+    effPrice: '{v} za sztukę w rzeczywistości, {p} względem kursu',
+    sellNow: 'Od razu sprzedane: {v}',
+
+    footPrivacy: 'Liczy tylko na twoim urządzeniu. To, co wpisujesz, zostaje w twojej przeglądarce i nigdzie nie jest wysyłane; Pocketsum nie liczy odwiedzin.',
+    footAdvice: 'To nie jest doradztwo podatkowe ani inwestycyjne. Przykładowe opłaty to tylko wartości zastępcze, a nie cenniki.',
+    footOffline: 'Po pierwszej wizycie Pocketsum działa też bez internetu.',
+    footDownload: 'Pobierz jako jeden plik',
+    footWerkstatt: 'Warsztat Dennis_mit_2n',
+    footSource: 'Kod źródłowy na GitHubie',
+    footTranslations: 'Tłumaczenia częściowo maszynowe – poprawki mile widziane.',
+    version: 'Wersja {v} · {d}'
+  },
+
+  pt: {
+    _name: 'Português',
+    tagline: 'Cinco pequenas calculadoras que não querem nada de si.',
+    themeLabel: 'Aspeto', themeSystem: 'Sistema', themeLight: 'Claro', themeDark: 'Escuro',
+    langLabel: 'Idioma',
+    tabsLabel: 'Calculadoras',
+    tabMwst: 'IVA', tabTip: 'Gorjeta', tabSprit: 'Combustível', tabDivi: 'Dividendos', tabTrade: 'Trading',
+    reset: 'Repor', copy: 'Copiar resultado', copied: 'Copiado', copyFailed: 'Não foi possível copiar', resetDone: 'Valores repostos',
+    amount: 'Montante',
+    egValue: 'p. ex. {v}',
+    centAbbr: 'cênt.',
+    roundTo: 'para {v}',
+    unitKmMonth: 'km/mês', unitPcs: 'un.', unitEurYear: '€/ano', unitEurMonth: '€/mês',
+
+    mwstTitle: 'Imposto sobre o valor acrescentado (IVA)',
+    mwstSub: 'Líquido, imposto e bruto nos dois sentidos',
+    mwstIs: 'O montante é',
+    mwstNet: 'líquido, sem IVA',
+    mwstGross: 'bruto, com IVA',
+    mwstRate: 'Taxa',
+    mwstCustom: 'outra',
+    mwstCustomAria: 'Taxa de imposto própria em percentagem',
+    mwstRateHint: '19% e 7% são as taxas alemãs. Para outros países, introduza a sua taxa em «outra».',
+    resNet: 'Líquido', resTax: 'IVA', resGross: 'Bruto',
+    mwstWayNet: 'Cálculo: líquido × {f} = bruto. O imposto é a diferença.',
+    mwstWayGross: 'Cálculo: bruto ÷ {f} = líquido. O imposto é a diferença.',
+
+    tipTitle: 'Gorjeta',
+    tipSub: 'Com arredondamento e divisão por várias pessoas',
+    tipBill: 'Valor da conta',
+    tipLegend: 'Gorjeta',
+    tipCustom: 'outra',
+    tipCustomAria: 'Percentagem de gorjeta própria',
+    tipRoundLegend: 'Arredondar o total para cima',
+    tipRoundNone: 'não arredondar',
+    tipRoundWhole: 'para euros inteiros',
+    tipPeople: 'Pessoas',
+    tipFewer: 'Menos uma pessoa',
+    tipMore: 'Mais uma pessoa',
+    resTip: 'Gorjeta', resTotal: 'Total', resPerPerson: 'Por pessoa',
+    tipOfWhich: 'dos quais {v} de gorjeta',
+    tipSay: 'Diga simplesmente: «Fica {v}.»',
+    tipNone: 'Sem gorjeta, paga {v}.',
+    tipEach: 'Cada um paga {v}.',
+
+    spritTitle: 'Preço do combustível',
+    spritSub: 'Quanto lhe custa uma subida de preço por depósito, por 100 km e por mês',
+    spritNow: 'Preço atual',
+    spritNew: 'Preço novo',
+    spritChips: 'Definir já o preço novo: preço atual …',
+    spritTank: 'Capacidade do depósito',
+    spritUse: 'Consumo',
+    spritKm: 'Quilometragem',
+    resRise: 'Subida', resFall: 'Descida',
+    resMoreMonth: 'A mais por mês', resLessMonth: 'A menos por mês',
+    perLitre: '{v} por litro',
+    perYear: 'num ano {v}',
+    thCost: 'Custo', thNow: 'atual', thNew: 'novo',
+    rowFill: 'Depósito cheio', rowMonth: 'Mês', rowYear: 'Ano',
+    spritTableTitle: 'Tabela de preços à volta do preço atual',
+    spritStep: 'Intervalo',
+    thDiffMonth: '± mês',
+    spritTableHint: 'A linha realçada é o preço atual; a emoldurada, o novo. «Depósito cheio» é encher o depósito todo; «± mês» é a diferença face ao preço atual com a sua quilometragem.',
+
+    diviTitle: 'Dividendos',
+    diviSub: 'Bruto, impostos e líquido – por ano, por pagamento, por mês',
+    diviStart: 'Ponto de partida',
+    diviHave: 'Tenho ações',
+    diviInvest: 'Invisto um montante',
+    diviCount: 'Número de ações',
+    diviAmount: 'Montante investido',
+    diviPrice: 'Cotação por ação',
+    diviAs: 'Indicar o dividendo como',
+    diviAsPer: '€ por ação e ano',
+    diviAsYield: 'rendimento em %',
+    diviPer: 'Dividendo por ação',
+    diviYield: 'Rendimento do dividendo',
+    diviFreq: 'Pagamentos',
+    freq1: 'anual', freq2: 'semestral', freq4: 'trimestral', freq12: 'mensal',
+    diviTax: 'Descontar impostos segundo a lei alemã',
+    diviPaper: 'Tipo de título',
+    paperShare: 'Ação individual',
+    paperEtf: 'ETF ou fundo de ações ({v} isento)',
+    paperMixed: 'Fundo misto ({v} isento)',
+    diviChurch: 'Imposto eclesiástico',
+    churchNone: 'nenhum',
+    church8: '{v} (Baviera, Bade-Vurtemberga)',
+    church9: '{v} (restantes estados)',
+    diviAllowance: 'Isenção do aforrador (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (individual)',
+    allowJoint: '{v} (tributação conjunta)',
+    allowNone: 'sem ordem de isenção',
+    diviUsed: 'Já usado este ano',
+    diviWht: 'Retenção na fonte estrangeira',
+    diviWhtPh: 'EUA: 15',
+    diviTaxHint: 'Simplificado: 25% de imposto sobre rendimentos de capitais (Abgeltungsteuer) mais 5,5% de sobretaxa de solidariedade sobre esse valor; com imposto eclesiástico aplica-se a fórmula do § 32d EStG, e nos fundos aplica-se primeiro a isenção parcial do § 20 InvStG. A retenção estrangeira é deduzida até 15% (a taxa habitual das convenções para evitar a dupla tributação). O que um país retiver acima disso, como a Suíça com 35%, pode reclamar lá; o Pocketsum não o calcula. Não é aconselhamento fiscal.',
+    resNetYear: 'Líquido por ano', resNetMonth: 'Líquido por mês', resGrossYear: 'Bruto por ano',
+    resTaxes: 'Impostos', resCapital: 'Capital',
+    netYield: '{v} de rendimento líquido sobre o capital',
+    grossYield: '{v} de rendimento bruto',
+    perHalf: '{v} por semestre', perQuarter: '{v} por trimestre', perMonth: '{v} por mês',
+    onePayout: 'um pagamento por ano',
+    noTax: 'calculado sem impostos',
+    allCovered: 'tudo coberto pela isenção',
+    effRate: '{v} efetivo',
+    partExempt: '{v} isento (isenção parcial)',
+    whtAmount: '{v} de retenção estrangeira',
+    churchAmount: '{v} de imposto eclesiástico',
+    sharesLine: '{n} ações · {v} por ação e ano',
+    diviGoal: 'E ao contrário: líquido desejado por mês',
+    goalText: 'Para {v} líquidos por mês precisa de cerca de {n} ações, ou seja, {c} de capital à cotação de hoje.',
+    goalNone: 'Sem dividendo por ação não é possível calcular um objetivo.',
+
+    tradeTitle: 'Custos de uma operação',
+    tradeSub: 'Quanto custa realmente comprar ações, ETF ou cripto',
+    tradeFees: 'Comissões',
+    feesIncl: 'estão incluídas no montante',
+    feesPlus: 'somam-se ao montante',
+    tradePrice: 'Cotação (opcional)',
+    tradePricePh: 'p. ex. {v} por 1 BTC',
+    feeModel: 'Modelo de comissões',
+    presetsLabel: 'Valores de exemplo para começar – introduza o preçário do seu fornecedor',
+    presetCryptoInstant: 'Bolsa cripto, compra imediata',
+    presetCryptoOrder: 'Bolsa cripto, livro de ordens',
+    presetNeo: 'Neocorretora, {v} fixo',
+    presetPlan: 'Plano de poupança {v}',
+    presetDirect: 'Banco online',
+    presetOwn: 'Valores próprios',
+    feePct: 'Comissão', feeFix: '+ valor fixo', feeMin: 'mínimo',
+    feeSpread: 'Acréscimo por compra ou venda',
+    spreadHint: 'Se o seu fornecedor indicar um spread de compra e venda, introduza aqui metade: entre compra e venda só se paga uma vez.',
+    roundTrip: 'Incluir a venda nas mesmas condições',
+    warnFees: 'As comissões são superiores ao montante. Não sobra nada para investir.',
+    resBuyCost: 'Custo da compra',
+    resInvested: 'Realmente investido',
+    resYouGet: 'Recebe',
+    resBreakEven: 'A cotação tem de subir',
+    breakEvenNote: 'para voltar a zero ao vender',
+    resRoundTrip: 'Compra + venda juntas',
+    feeAmount: '{v} de comissão',
+    spreadAmount: '{v} de acréscimo',
+    ofPaid: '{v} do valor pago',
+    paidTotal: 'paga {v} no total',
+    paidOf: 'de {v} pagos',
+    units: '{v} unidades',
+    effPrice: '{v} por unidade na realidade, {p} face à cotação',
+    sellNow: 'Vendido de imediato: {v}',
+
+    footPrivacy: 'Calcula apenas no seu dispositivo. O que introduz fica no seu navegador e não é enviado para lado nenhum; o Pocketsum não conta visitas.',
+    footAdvice: 'Não é aconselhamento fiscal nem de investimento. As comissões de exemplo são apenas valores ilustrativos, não preçários.',
+    footOffline: 'Depois da primeira visita, o Pocketsum também funciona sem ligação.',
+    footDownload: 'Descarregar como um único ficheiro',
+    footWerkstatt: 'Uma oficina de Dennis_mit_2n',
+    footSource: 'Código-fonte no GitHub',
+    footTranslations: 'Traduções em parte automáticas – correções são bem-vindas.',
+    version: 'Versão {v} · {d}'
+  }
+,
+
+  tr: {
+    _name: 'Türkçe',
+    tagline: 'Sizden hiçbir şey istemeyen beş küçük hesap makinesi.',
+    themeLabel: 'Görünüm', themeSystem: 'Sistem', themeLight: 'Açık', themeDark: 'Koyu',
+    langLabel: 'Dil',
+    tabsLabel: 'Hesap makineleri',
+    tabMwst: 'KDV', tabTip: 'Bahşiş', tabSprit: 'Yakıt', tabDivi: 'Temettü', tabTrade: 'İşlem',
+    reset: 'Sıfırla', copy: 'Sonucu kopyala', copied: 'Kopyalandı', copyFailed: 'Kopyalanamadı', resetDone: 'Değerler sıfırlandı',
+    amount: 'Tutar',
+    egValue: 'örn. {v}',
+    centAbbr: 'sent',
+    roundTo: '{v}',
+    unitKmMonth: 'km/ay', unitPcs: 'adet', unitEurYear: '€/yıl', unitEurMonth: '€/ay',
+
+    mwstTitle: 'Katma değer vergisi (KDV)',
+    mwstSub: 'Net, vergi ve brüt – iki yönde de',
+    mwstIs: 'Girilen tutar',
+    mwstNet: 'net, KDV hariç',
+    mwstGross: 'brüt, KDV dahil',
+    mwstRate: 'Vergi oranı',
+    mwstCustom: 'özel',
+    mwstCustomAria: 'Yüzde olarak özel vergi oranı',
+    mwstRateHint: '%19 ve %7 Almanya’daki oranlardır. Başka ülkeler için oranınızı “özel” alanına girin.',
+    resNet: 'Net', resTax: 'KDV', resGross: 'Brüt',
+    mwstWayNet: 'Hesap: net × {f} = brüt. Vergi aradaki farktır.',
+    mwstWayGross: 'Hesap: brüt ÷ {f} = net. Vergi aradaki farktır.',
+
+    tipTitle: 'Bahşiş',
+    tipSub: 'Yukarı yuvarlama ve birkaç kişiye bölme ile',
+    tipBill: 'Hesap tutarı',
+    tipLegend: 'Bahşiş',
+    tipCustom: 'özel',
+    tipCustomAria: 'Özel bahşiş yüzdesi',
+    tipRoundLegend: 'Toplamı yukarı yuvarla',
+    tipRoundNone: 'yuvarlama yok',
+    tipRoundWhole: 'tam euro',
+    tipPeople: 'Kişi sayısı',
+    tipFewer: 'Bir kişi az',
+    tipMore: 'Bir kişi daha',
+    resTip: 'Bahşiş', resTotal: 'Toplam', resPerPerson: 'Kişi başı',
+    tipOfWhich: 'bunun {v} kadarı bahşiş',
+    tipSay: 'Sadece şunu söyleyin: “{v} olsun.”',
+    tipNone: 'Bahşiş yok, {v} ödüyorsunuz.',
+    tipEach: 'Herkes {v} öder.',
+
+    spritTitle: 'Yakıt fiyatı',
+    spritSub: 'Bir fiyat artışı size depo başına, 100 km’de ve ayda kaça mal olur',
+    spritNow: 'Şimdiki fiyat',
+    spritNew: 'Yeni fiyat',
+    spritChips: 'Yeni fiyatı hızla ayarla: şimdiki fiyat …',
+    spritTank: 'Depo hacmi',
+    spritUse: 'Tüketim',
+    spritKm: 'Aylık mesafe',
+    resRise: 'Artış', resFall: 'Düşüş',
+    resMoreMonth: 'Aylık ek maliyet', resLessMonth: 'Aylık tasarruf',
+    perLitre: 'litre başına {v}',
+    perYear: 'yılda {v}',
+    thCost: 'Maliyet', thNow: 'şimdi', thNew: 'yeni',
+    rowFill: 'Dolu depo', rowMonth: 'Ay', rowYear: 'Yıl',
+    spritTableTitle: 'Şimdiki fiyatın çevresinde fiyat tablosu',
+    spritStep: 'Adım',
+    thDiffMonth: '± ay',
+    spritTableHint: 'Vurgulanan satır şimdiki fiyat, çerçeveli satır yeni fiyattır. “Dolu depo” deponun tamamen doldurulması, “± ay” ise aylık mesafenize göre şimdiki fiyata olan farktır.',
+
+    diviTitle: 'Temettü',
+    diviSub: 'Brüt, vergi ve net – yıllık, ödeme başına, aylık',
+    diviStart: 'Başlangıç noktası',
+    diviHave: 'Hisselerim var',
+    diviInvest: 'Bir tutar yatırıyorum',
+    diviCount: 'Hisse sayısı',
+    diviAmount: 'Yatırılan tutar',
+    diviPrice: 'Hisse başı fiyat',
+    diviAs: 'Temettüyü şöyle girin',
+    diviAsPer: 'hisse başına yıllık €',
+    diviAsYield: '% getiri',
+    diviPer: 'Hisse başına temettü',
+    diviYield: 'Temettü verimi',
+    diviFreq: 'Ödemeler',
+    freq1: 'yıllık', freq2: 'altı ayda bir', freq4: 'üç ayda bir', freq12: 'aylık',
+    diviTax: 'Vergileri Alman hukukuna göre düş',
+    diviPaper: 'Menkul kıymet türü',
+    paperShare: 'Tek hisse',
+    paperEtf: 'Hisse ETF’si veya fonu ({v} vergisiz)',
+    paperMixed: 'Karma fon ({v} vergisiz)',
+    diviChurch: 'Kilise vergisi',
+    churchNone: 'yok',
+    church8: '{v} (Bavyera, Baden-Württemberg)',
+    church9: '{v} (diğer eyaletler)',
+    diviAllowance: 'Tasarruf sahibi muafiyeti (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (bekâr)',
+    allowJoint: '{v} (ortak beyan)',
+    allowNone: 'muafiyet talimatı yok',
+    diviUsed: 'Bu yıl kullanılan',
+    diviWht: 'Yabancı stopaj vergisi',
+    diviWhtPh: 'ABD: 15',
+    diviTaxHint: 'Basitleştirilmiş: sermaye gelirine %25 stopaj vergisi (Abgeltungsteuer) ve bunun üzerine %5,5 dayanışma vergisi; kilise vergisinde § 32d EStG formülü geçerlidir, fonlarda ise önce § 20 InvStG kısmi muafiyeti uygulanır. Yabancı stopaj vergisi %15’e kadar mahsup edilir (çifte vergilendirme anlaşmalarının olağan oranı). Bir ülkenin bunun üzerinde kestiğini, örneğin İsviçre’nin %35’ini, oradan geri isteyebilirsiniz; Pocketsum bunu hesaplamaz. Vergi danışmanlığı değildir.',
+    resNetYear: 'Yıllık net', resNetMonth: 'Aylık net', resGrossYear: 'Yıllık brüt',
+    resTaxes: 'Vergiler', resCapital: 'Sermaye',
+    netYield: 'sermayeye göre {v} net getiri',
+    grossYield: '{v} brüt getiri',
+    perHalf: 'altı ayda {v}', perQuarter: 'çeyrek başına {v}', perMonth: 'ayda {v}',
+    onePayout: 'yılda bir ödeme',
+    noTax: 'vergisiz hesaplandı',
+    allCovered: 'tamamı muafiyetle karşılandı',
+    effRate: '{v} efektif',
+    partExempt: '{v} kısmen muaf',
+    whtAmount: '{v} yabancı stopaj',
+    churchAmount: '{v} kilise vergisi',
+    sharesLine: '{n} hisse · hisse başına yıllık {v}',
+    diviGoal: 'Tersinden: ayda istenen net tutar',
+    goalText: 'Ayda {v} net için yaklaşık {n} hisseye, yani bugünkü fiyatla {c} sermayeye ihtiyacınız var.',
+    goalNone: 'Hisse başına temettü olmadan hedef hesaplanamaz.',
+
+    tradeTitle: 'İşlem maliyetleri',
+    tradeSub: 'Hisse, ETF veya kripto almanın gerçek maliyeti',
+    tradeFees: 'Ücretler',
+    feesIncl: 'tutara dahil',
+    feesPlus: 'tutarın üstüne eklenir',
+    tradePrice: 'Fiyat (isteğe bağlı)',
+    tradePricePh: 'örn. 1 BTC için {v}',
+    feeModel: 'Ücret modeli',
+    presetsLabel: 'Başlamak için örnek değerler – sağlayıcınızın fiyat listesini girin',
+    presetCryptoInstant: 'Kripto borsası, anında alım',
+    presetCryptoOrder: 'Kripto borsası, emir defteri',
+    presetNeo: 'Neobroker, {v} sabit',
+    presetPlan: 'Birikim planı {v}',
+    presetDirect: 'Dijital banka',
+    presetOwn: 'Kendi değerleriniz',
+    feePct: 'Komisyon', feeFix: 'artı sabit', feeMin: 'en az',
+    feeSpread: 'Alış veya satış başına ek fiyat',
+    spreadHint: 'Sağlayıcınız bir alış-satış farkı (spread) belirtiyorsa buraya yarısını girin: alış ve satışta toplam yalnızca bir kez ödenir.',
+    roundTrip: 'Aynı koşullarla satışı da hesaba kat',
+    warnFees: 'Ücretler tutardan yüksek. Yatırıma hiçbir şey kalmıyor.',
+    resBuyCost: 'Alım maliyeti',
+    resInvested: 'Gerçekten yatırılan',
+    resYouGet: 'Alacağınız',
+    resBreakEven: 'Fiyatın yükselmesi gereken oran',
+    breakEvenNote: 'satışta yeniden sıfıra gelmek için',
+    resRoundTrip: 'Alış + satış birlikte',
+    feeAmount: '{v} komisyon',
+    spreadAmount: '{v} ek fiyat',
+    ofPaid: 'ödenenin {v} kadarı',
+    paidTotal: 'toplam {v} ödüyorsunuz',
+    paidOf: 'ödenen {v} içinden',
+    units: '{v} adet',
+    effPrice: 'adet başına gerçekte {v}, fiyata göre {p}',
+    sellNow: 'Hemen satılırsa: {v}',
+
+    footPrivacy: 'Yalnızca cihazınızda hesaplar. Girdikleriniz tarayıcınızda kalır ve hiçbir yere gönderilmez; Pocketsum ziyaretleri saymaz.',
+    footAdvice: 'Vergi veya yatırım danışmanlığı değildir. Örnek ücretler yalnızca yer tutucudur, fiyat listesi değildir.',
+    footOffline: 'İlk ziyaretten sonra Pocketsum bağlantı olmadan da çalışır.',
+    footDownload: 'Tek bir dosya olarak indir',
+    footWerkstatt: 'Dennis_mit_2n’nin bir atölyesi',
+    footSource: 'GitHub’da kaynak kodu',
+    footTranslations: 'Çeviriler kısmen makine çevirisidir – düzeltmeler memnuniyetle karşılanır.',
+    version: 'Sürüm {v} · {d}'
+  },
+
+  ru: {
+    _name: 'Русский',
+    tagline: 'Пять маленьких калькуляторов, которым от вас ничего не нужно.',
+    themeLabel: 'Оформление', themeSystem: 'Системное', themeLight: 'Светлое', themeDark: 'Тёмное',
+    langLabel: 'Язык',
+    tabsLabel: 'Калькуляторы',
+    tabMwst: 'НДС', tabTip: 'Чаевые', tabSprit: 'Топливо', tabDivi: 'Дивиденды', tabTrade: 'Сделка',
+    reset: 'Сбросить', copy: 'Скопировать результат', copied: 'Скопировано', copyFailed: 'Не удалось скопировать', resetDone: 'Значения сброшены',
+    amount: 'Сумма',
+    egValue: 'напр. {v}',
+    centAbbr: 'ц.',
+    roundTo: 'до {v}',
+    unitKmMonth: 'км/мес.', unitPcs: 'шт.', unitEurYear: '€/год', unitEurMonth: '€/мес.',
+
+    mwstTitle: 'Налог на добавленную стоимость (НДС)',
+    mwstSub: 'Нетто, налог и брутто в обе стороны',
+    mwstIs: 'Сумма указана',
+    mwstNet: 'нетто, без НДС',
+    mwstGross: 'брутто, с НДС',
+    mwstRate: 'Ставка',
+    mwstCustom: 'своя',
+    mwstCustomAria: 'Своя ставка налога в процентах',
+    mwstRateHint: '19 % и 7 % — ставки Германии. Для других стран введите свою ставку в поле «своя».',
+    resNet: 'Нетто', resTax: 'НДС', resGross: 'Брутто',
+    mwstWayNet: 'Расчёт: нетто × {f} = брутто. Налог — это разница.',
+    mwstWayGross: 'Расчёт: брутто ÷ {f} = нетто. Налог — это разница.',
+
+    tipTitle: 'Чаевые',
+    tipSub: 'С округлением и делением на несколько человек',
+    tipBill: 'Сумма счёта',
+    tipLegend: 'Чаевые',
+    tipCustom: 'свои',
+    tipCustomAria: 'Свой процент чаевых',
+    tipRoundLegend: 'Округлить итог вверх',
+    tipRoundNone: 'не округлять',
+    tipRoundWhole: 'до целых евро',
+    tipPeople: 'Человек',
+    tipFewer: 'На одного меньше',
+    tipMore: 'На одного больше',
+    resTip: 'Чаевые', resTotal: 'Итого', resPerPerson: 'С человека',
+    tipOfWhich: 'из них {v} чаевых',
+    tipSay: 'Просто скажите: «Пусть будет {v}».',
+    tipNone: 'Без чаевых, вы платите {v}.',
+    tipEach: 'Каждый платит {v}.',
+
+    spritTitle: 'Цена топлива',
+    spritSub: 'Во что вам обходится рост цены за полный бак, на 100 км и в месяц',
+    spritNow: 'Цена сейчас',
+    spritNew: 'Новая цена',
+    spritChips: 'Быстро задать новую цену: цена сейчас …',
+    spritTank: 'Объём бака',
+    spritUse: 'Расход',
+    spritKm: 'Пробег',
+    resRise: 'Рост', resFall: 'Снижение',
+    resMoreMonth: 'Больше в месяц', resLessMonth: 'Меньше в месяц',
+    perLitre: '{v} за литр',
+    perYear: 'за год {v}',
+    thCost: 'Расходы', thNow: 'сейчас', thNew: 'новая',
+    rowFill: 'Полный бак', rowMonth: 'Месяц', rowYear: 'Год',
+    spritTableTitle: 'Таблица цен вокруг текущей цены',
+    spritStep: 'Шаг',
+    thDiffMonth: '± месяц',
+    spritTableHint: 'Выделенная строка — текущая цена, строка в рамке — новая. «Полный бак» — это бак, заправленный до конца, «± месяц» — разница с текущей ценой при вашем пробеге.',
+
+    diviTitle: 'Дивиденды',
+    diviSub: 'Брутто, налог и нетто — за год, за выплату, за месяц',
+    diviStart: 'Исходные данные',
+    diviHave: 'У меня есть акции',
+    diviInvest: 'Я вкладываю сумму',
+    diviCount: 'Число акций',
+    diviAmount: 'Сумма вложения',
+    diviPrice: 'Цена акции',
+    diviAs: 'Указать дивиденд как',
+    diviAsPer: '€ на акцию в год',
+    diviAsYield: 'доходность в %',
+    diviPer: 'Дивиденд на акцию',
+    diviYield: 'Дивидендная доходность',
+    diviFreq: 'Выплаты',
+    freq1: 'раз в год', freq2: 'раз в полгода', freq4: 'раз в квартал', freq12: 'ежемесячно',
+    diviTax: 'Вычесть налоги по немецкому праву',
+    diviPaper: 'Вид бумаги',
+    paperShare: 'Отдельная акция',
+    paperEtf: 'Фонд или ETF акций ({v} без налога)',
+    paperMixed: 'Смешанный фонд ({v} без налога)',
+    diviChurch: 'Церковный налог',
+    churchNone: 'нет',
+    church8: '{v} (Бавария, Баден-Вюртемберг)',
+    church9: '{v} (остальные земли)',
+    diviAllowance: 'Необлагаемый минимум (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (индивидуальная декларация)',
+    allowJoint: '{v} (совместная декларация)',
+    allowNone: 'без поручения об освобождении',
+    diviUsed: 'Уже использовано в этом году',
+    diviWht: 'Иностранный налог у источника',
+    diviWhtPh: 'США: 15',
+    diviTaxHint: 'Упрощённо: 25 % налога на доходы от капитала (Abgeltungsteuer) плюс 5,5 % надбавки солидарности с этой суммы; при церковном налоге действует формула из § 32d EStG, а для фондов сначала применяется частичное освобождение по § 20 InvStG. Иностранный налог у источника засчитывается до 15 % (обычная ставка соглашений об избежании двойного налогообложения). То, что страна удерживает сверх этого, например Швейцария с 35 %, можно вернуть там; Pocketsum этого не считает. Это не налоговая консультация.',
+    resNetYear: 'Нетто за год', resNetMonth: 'Нетто в месяц', resGrossYear: 'Брутто за год',
+    resTaxes: 'Налоги', resCapital: 'Капитал',
+    netYield: '{v} чистой доходности на капитал',
+    grossYield: '{v} доходности брутто',
+    perHalf: '{v} за полгода', perQuarter: '{v} за квартал', perMonth: '{v} в месяц',
+    onePayout: 'одна выплата в год',
+    noTax: 'рассчитано без налогов',
+    allCovered: 'всё покрыто необлагаемым минимумом',
+    effRate: '{v} фактически',
+    partExempt: '{v} частично освобождено',
+    whtAmount: '{v} иностранного налога',
+    churchAmount: '{v} церковного налога',
+    sharesLine: 'Акций: {n} · {v} на акцию в год',
+    diviGoal: 'И наоборот: желаемый доход нетто в месяц',
+    goalText: 'Чтобы получать {v} нетто в месяц, нужно около {n} шт. акций, то есть {c} капитала по сегодняшней цене.',
+    goalNone: 'Без дивиденда на акцию цель рассчитать нельзя.',
+
+    tradeTitle: 'Расходы на сделку',
+    tradeSub: 'Сколько на самом деле стоит покупка акций, ETF или криптовалюты',
+    tradeFees: 'Комиссии',
+    feesIncl: 'входят в сумму',
+    feesPlus: 'добавляются сверху',
+    tradePrice: 'Цена (необязательно)',
+    tradePricePh: 'напр. {v} за 1 BTC',
+    feeModel: 'Модель комиссий',
+    presetsLabel: 'Примерные значения для начала — введите тарифы своего провайдера',
+    presetCryptoInstant: 'Криптобиржа, мгновенная покупка',
+    presetCryptoOrder: 'Криптобиржа, книга заявок',
+    presetNeo: 'Необрокер, {v} фикс.',
+    presetPlan: 'Накопительный план {v}',
+    presetDirect: 'Онлайн-банк',
+    presetOwn: 'Свои значения',
+    feePct: 'Комиссия', feeFix: 'плюс фикс.', feeMin: 'минимум',
+    feeSpread: 'Наценка на покупку или продажу',
+    spreadHint: 'Если провайдер указывает спред между покупкой и продажей, введите здесь половину: на покупку и продажу вместе он приходится только один раз.',
+    roundTrip: 'Учесть продажу на тех же условиях',
+    warnFees: 'Комиссии больше суммы. Вкладывать нечего.',
+    resBuyCost: 'Расходы на покупку',
+    resInvested: 'Реально вложено',
+    resYouGet: 'Вы получаете',
+    resBreakEven: 'Цена должна вырасти на',
+    breakEvenNote: 'чтобы при продаже выйти в ноль',
+    resRoundTrip: 'Покупка + продажа вместе',
+    feeAmount: '{v} комиссии',
+    spreadAmount: '{v} наценки',
+    ofPaid: '{v} от уплаченного',
+    paidTotal: 'вы платите всего {v}',
+    paidOf: 'из уплаченной суммы {v}',
+    units: '{v} шт.',
+    effPrice: 'фактически {v} за штуку, {p} к цене',
+    sellNow: 'Если сразу продать: {v}',
+
+    footPrivacy: 'Считает только на вашем устройстве. Введённое остаётся в вашем браузере и никуда не отправляется; Pocketsum не считает посещения.',
+    footAdvice: 'Это не налоговая и не инвестиционная консультация. Примеры комиссий — лишь условные значения, а не тарифы.',
+    footOffline: 'После первого посещения Pocketsum работает и без интернета.',
+    footDownload: 'Скачать одним файлом',
+    footWerkstatt: 'Мастерская Dennis_mit_2n',
+    footSource: 'Исходный код на GitHub',
+    footTranslations: 'Переводы частично машинные — исправления приветствуются.',
+    version: 'Версия {v} · {d}'
+  },
+
+  hi: {
+    _name: 'हिन्दी',
+    tagline: 'पाँच छोटे कैलकुलेटर, जिन्हें आपसे कुछ नहीं चाहिए।',
+    themeLabel: 'रूप', themeSystem: 'सिस्टम', themeLight: 'हल्का', themeDark: 'गहरा',
+    langLabel: 'भाषा',
+    tabsLabel: 'कैलकुलेटर',
+    tabMwst: 'VAT', tabTip: 'टिप', tabSprit: 'ईंधन', tabDivi: 'लाभांश', tabTrade: 'ट्रेड',
+    reset: 'रीसेट करें', copy: 'नतीजा कॉपी करें', copied: 'कॉपी हो गया', copyFailed: 'कॉपी नहीं हो सका', resetDone: 'मान रीसेट हो गए',
+    amount: 'राशि',
+    egValue: 'जैसे {v}',
+    centAbbr: 'सेंट',
+    roundTo: '{v} तक',
+    unitKmMonth: 'किमी/माह', unitPcs: 'शेयर', unitEurYear: '€/वर्ष', unitEurMonth: '€/माह',
+
+    mwstTitle: 'मूल्य वर्धित कर (VAT)',
+    mwstSub: 'नेट, कर और ग्रॉस – दोनों दिशाओं में',
+    mwstIs: 'राशि है',
+    mwstNet: 'नेट, VAT के बिना',
+    mwstGross: 'ग्रॉस, VAT सहित',
+    mwstRate: 'कर दर',
+    mwstCustom: 'अपनी',
+    mwstCustomAria: 'प्रतिशत में अपनी कर दर',
+    mwstRateHint: '19% और 7% जर्मनी की दरें हैं। दूसरे देशों के लिए अपनी दर “अपनी” में भरें।',
+    resNet: 'नेट', resTax: 'VAT', resGross: 'ग्रॉस',
+    mwstWayNet: 'गणना: नेट × {f} = ग्रॉस। कर इन दोनों का अंतर है।',
+    mwstWayGross: 'गणना: ग्रॉस ÷ {f} = नेट। कर इन दोनों का अंतर है।',
+
+    tipTitle: 'टिप',
+    tipSub: 'ऊपर की ओर पूरा करने और कई लोगों में बाँटने के साथ',
+    tipBill: 'बिल की राशि',
+    tipLegend: 'टिप',
+    tipCustom: 'अपनी',
+    tipCustomAria: 'अपना टिप प्रतिशत',
+    tipRoundLegend: 'कुल राशि ऊपर की ओर पूरी करें',
+    tipRoundNone: 'पूरा न करें',
+    tipRoundWhole: 'पूरे यूरो तक',
+    tipPeople: 'लोग',
+    tipFewer: 'एक व्यक्ति कम',
+    tipMore: 'एक व्यक्ति ज़्यादा',
+    resTip: 'टिप', resTotal: 'कुल', resPerPerson: 'प्रति व्यक्ति',
+    tipOfWhich: 'इसमें {v} टिप',
+    tipSay: 'बस कहें: “{v} कर दीजिए।”',
+    tipNone: 'कोई टिप नहीं, आप {v} देते हैं।',
+    tipEach: 'हर व्यक्ति {v} देता है।',
+
+    spritTitle: 'ईंधन की कीमत',
+    spritSub: 'कीमत बढ़ने से आपको प्रति टंकी, प्रति 100 किमी और प्रति माह कितना ज़्यादा पड़ता है',
+    spritNow: 'अभी की कीमत',
+    spritNew: 'नई कीमत',
+    spritChips: 'नई कीमत जल्दी तय करें: अभी की कीमत …',
+    spritTank: 'टंकी का आकार',
+    spritUse: 'खपत',
+    spritKm: 'चली गई दूरी',
+    resRise: 'बढ़ोतरी', resFall: 'गिरावट',
+    resMoreMonth: 'हर माह ज़्यादा', resLessMonth: 'हर माह कम',
+    perLitre: 'प्रति लीटर {v}',
+    perYear: 'साल भर में {v}',
+    thCost: 'लागत', thNow: 'अभी', thNew: 'नई',
+    rowFill: 'पूरी टंकी', rowMonth: 'माह', rowYear: 'वर्ष',
+    spritTableTitle: 'अभी की कीमत के आसपास कीमतों की तालिका',
+    spritStep: 'अंतराल',
+    thDiffMonth: '± माह',
+    spritTableHint: 'हाइलाइट की गई पंक्ति अभी की कीमत है, फ्रेम वाली पंक्ति नई कीमत। “पूरी टंकी” का मतलब है टंकी पूरी भरना, “± माह” आपकी दूरी पर अभी की कीमत से अंतर है।',
+
+    diviTitle: 'लाभांश',
+    diviSub: 'ग्रॉस, कर और नेट – प्रति वर्ष, प्रति भुगतान, प्रति माह',
+    diviStart: 'शुरुआत',
+    diviHave: 'मेरे पास शेयर हैं',
+    diviInvest: 'एक राशि निवेश करनी है',
+    diviCount: 'शेयरों की संख्या',
+    diviAmount: 'निवेश की राशि',
+    diviPrice: 'प्रति शेयर भाव',
+    diviAs: 'लाभांश ऐसे बताएँ',
+    diviAsPer: 'प्रति शेयर प्रति वर्ष €',
+    diviAsYield: '% में यील्ड',
+    diviPer: 'प्रति शेयर लाभांश',
+    diviYield: 'लाभांश यील्ड',
+    diviFreq: 'भुगतान',
+    freq1: 'सालाना', freq2: 'छमाही', freq4: 'तिमाही', freq12: 'मासिक',
+    diviTax: 'जर्मन क़ानून के अनुसार कर घटाएँ',
+    diviPaper: 'प्रतिभूति का प्रकार',
+    paperShare: 'किसी एक कंपनी का शेयर',
+    paperEtf: 'इक्विटी ETF या फ़ंड ({v} कर-मुक्त)',
+    paperMixed: 'मिश्रित फ़ंड ({v} कर-मुक्त)',
+    diviChurch: 'चर्च कर',
+    churchNone: 'कोई नहीं',
+    church8: '{v} (बवेरिया, बाडेन-वुर्टेमबर्ग)',
+    church9: '{v} (बाकी राज्य)',
+    diviAllowance: 'बचतकर्ता छूट (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (अकेले)',
+    allowJoint: '{v} (संयुक्त आकलन)',
+    allowNone: 'कोई छूट आदेश नहीं',
+    diviUsed: 'इस साल पहले से इस्तेमाल',
+    diviWht: 'विदेशी विदहोल्डिंग टैक्स',
+    diviWhtPh: 'अमेरिका: 15',
+    diviTaxHint: 'सरल रूप में: पूँजी आय पर 25% फ़्लैट कर (Abgeltungsteuer) और उस पर 5.5% एकजुटता अधिभार; चर्च कर होने पर § 32d EStG का सूत्र लागू होता है, और फ़ंड में पहले § 20 InvStG की आंशिक छूट लगती है। विदेशी विदहोल्डिंग टैक्स 15% तक समायोजित होता है (कर संधियों की सामान्य दर)। कोई देश इससे ज़्यादा काटे, जैसे स्विट्ज़रलैंड 35% काटता है, तो 15% से ऊपर का हिस्सा आप वहीं से वापस माँग सकते हैं; Pocketsum इसकी गणना नहीं करता। यह कर सलाह नहीं है।',
+    resNetYear: 'प्रति वर्ष नेट', resNetMonth: 'प्रति माह नेट', resGrossYear: 'प्रति वर्ष ग्रॉस',
+    resTaxes: 'कर', resCapital: 'पूँजी',
+    netYield: 'पूँजी पर {v} नेट यील्ड',
+    grossYield: '{v} ग्रॉस यील्ड',
+    perHalf: 'प्रति छमाही {v}', perQuarter: 'प्रति तिमाही {v}', perMonth: 'प्रति माह {v}',
+    onePayout: 'साल में एक भुगतान',
+    noTax: 'कर के बिना गिना गया',
+    allCovered: 'पूरा छूट में आ गया',
+    effRate: '{v} प्रभावी',
+    partExempt: '{v} आंशिक छूट',
+    whtAmount: '{v} विदहोल्डिंग टैक्स',
+    churchAmount: '{v} चर्च कर',
+    sharesLine: '{n} शेयर · प्रति शेयर प्रति वर्ष {v}',
+    diviGoal: 'और उल्टा: हर माह चाहिए नेट आय',
+    goalText: 'हर माह {v} नेट के लिए आपको लगभग {n} शेयर चाहिए, यानी आज के भाव पर {c} पूँजी।',
+    goalNone: 'प्रति शेयर लाभांश के बिना लक्ष्य की गणना नहीं हो सकती।',
+
+    tradeTitle: 'ट्रेड की लागत',
+    tradeSub: 'शेयर, ETF या क्रिप्टो ख़रीदना असल में कितना पड़ता है',
+    tradeFees: 'शुल्क',
+    feesIncl: 'राशि में शामिल हैं',
+    feesPlus: 'राशि के ऊपर जुड़ते हैं',
+    tradePrice: 'भाव (वैकल्पिक)',
+    tradePricePh: 'जैसे 1 BTC के लिए {v}',
+    feeModel: 'शुल्क मॉडल',
+    presetsLabel: 'शुरुआत के लिए उदाहरण मान – अपने प्रदाता की रेट लिस्ट भरें',
+    presetCryptoInstant: 'क्रिप्टो एक्सचेंज, तुरंत ख़रीद',
+    presetCryptoOrder: 'क्रिप्टो एक्सचेंज, ऑर्डर बुक',
+    presetNeo: 'नियो-ब्रोकर, तय शुल्क {v}',
+    presetPlan: 'SIP {v}',
+    presetDirect: 'ऑनलाइन बैंक',
+    presetOwn: 'अपने मान',
+    feePct: 'शुल्क', feeFix: '+ तय शुल्क', feeMin: 'कम से कम',
+    feeSpread: 'हर ख़रीद या बिक्री पर अतिरिक्त',
+    spreadHint: 'अगर आपका प्रदाता बिड-आस्क स्प्रेड बताता है, तो यहाँ उसका आधा भरें: ख़रीद और बिक्री मिलाकर वह एक ही बार लगता है।',
+    roundTrip: 'उन्हीं शर्तों पर बिक्री भी जोड़ें',
+    warnFees: 'शुल्क राशि से ज़्यादा है। निवेश के लिए कुछ नहीं बचता।',
+    resBuyCost: 'ख़रीद की लागत',
+    resInvested: 'असल में निवेश',
+    resYouGet: 'आपको मिलता है',
+    resBreakEven: 'भाव को इतना बढ़ना होगा',
+    breakEvenNote: 'ताकि बेचने पर आप फिर शून्य पर हों',
+    resRoundTrip: 'ख़रीद + बिक्री मिलाकर',
+    feeAmount: '{v} शुल्क',
+    spreadAmount: '{v} अतिरिक्त',
+    ofPaid: 'चुकाई गई राशि का {v}',
+    paidTotal: 'आप कुल {v} चुकाते हैं',
+    paidOf: 'चुकाए गए {v} में से',
+    units: '{v} यूनिट',
+    effPrice: 'असल में {v} प्रति यूनिट, भाव से {p}',
+    sellNow: 'तुरंत बेचने पर: {v}',
+
+    footPrivacy: 'सिर्फ़ आपके डिवाइस पर गणना करता है। आप जो भरते हैं वह आपके ब्राउज़र में रहता है और कहीं नहीं भेजा जाता; Pocketsum विज़िट नहीं गिनता।',
+    footAdvice: 'यह कर या निवेश सलाह नहीं है। उदाहरण वाले शुल्क सिर्फ़ नमूने हैं, रेट लिस्ट नहीं।',
+    footOffline: 'पहली विज़िट के बाद Pocketsum बिना इंटरनेट के भी चलता है।',
+    footDownload: 'एक फ़ाइल के रूप में डाउनलोड करें',
+    footWerkstatt: 'Dennis_mit_2n की एक वर्कशॉप',
+    footSource: 'GitHub पर सोर्स कोड',
+    footTranslations: 'अनुवाद आंशिक रूप से मशीन से हैं – सुधार का स्वागत है।',
+    version: 'संस्करण {v} · {d}'
+  },
+
+  zh: {
+    _name: '简体中文',
+    tagline: '五个小计算器，对你别无所求。',
+    themeLabel: '外观', themeSystem: '跟随系统', themeLight: '浅色', themeDark: '深色',
+    langLabel: '语言',
+    tabsLabel: '计算器',
+    tabMwst: '增值税', tabTip: '小费', tabSprit: '油费', tabDivi: '股息', tabTrade: '交易',
+    reset: '重置', copy: '复制结果', copied: '已复制', copyFailed: '复制失败', resetDone: '已重置',
+    amount: '金额',
+    egValue: '例如 {v}',
+    centAbbr: '欧分',
+    roundTo: '到 {v}',
+    unitKmMonth: '公里/月', unitPcs: '股', unitEurYear: '€/年', unitEurMonth: '€/月',
+
+    mwstTitle: '增值税',
+    mwstSub: '不含税、税额和含税金额，双向换算',
+    mwstIs: '金额为',
+    mwstNet: '不含增值税（净额）',
+    mwstGross: '含增值税（总额）',
+    mwstRate: '税率',
+    mwstCustom: '自定义',
+    mwstCustomAria: '自定义税率（百分比）',
+    mwstRateHint: '19% 和 7% 是德国的税率。其他国家请在“自定义”中填入你的税率。',
+    resNet: '不含税', resTax: '增值税', resGross: '含税',
+    mwstWayNet: '算法：不含税 × {f} = 含税。税额就是两者之差。',
+    mwstWayGross: '算法：含税 ÷ {f} = 不含税。税额就是两者之差。',
+
+    tipTitle: '小费',
+    tipSub: '可向上取整，也可多人分摊',
+    tipBill: '账单金额',
+    tipLegend: '小费',
+    tipCustom: '自定义',
+    tipCustomAria: '自定义小费百分比',
+    tipRoundLegend: '总额向上取整',
+    tipRoundNone: '不取整',
+    tipRoundWhole: '到整欧元',
+    tipPeople: '人数',
+    tipFewer: '减少一人',
+    tipMore: '增加一人',
+    resTip: '小费', resTotal: '合计', resPerPerson: '每人',
+    tipOfWhich: '其中小费 {v}',
+    tipSay: '直接说：“就算 {v} 吧。”',
+    tipNone: '不给小费，你付 {v}。',
+    tipEach: '每人付 {v}。',
+
+    spritTitle: '油价',
+    spritSub: '油价上涨后，每箱油、每 100 公里和每月要多花多少',
+    spritNow: '现价',
+    spritNew: '新价',
+    spritChips: '快速设定新价：现价 …',
+    spritTank: '油箱容量',
+    spritUse: '油耗',
+    spritKm: '行驶里程',
+    resRise: '上涨', resFall: '下降',
+    resMoreMonth: '每月多花', resLessMonth: '每月少花',
+    perLitre: '每升 {v}',
+    perYear: '全年 {v}',
+    thCost: '费用', thNow: '现价', thNew: '新价',
+    rowFill: '加满一箱', rowMonth: '月', rowYear: '年',
+    spritTableTitle: '现价附近的价格表',
+    spritStep: '步长',
+    thDiffMonth: '± 月',
+    spritTableHint: '高亮的一行是现价，带框的一行是新价。“加满一箱”指把油箱加满，“± 月”是按你的里程与现价相比的差额。',
+
+    diviTitle: '股息',
+    diviSub: '税前、税款和税后——每年、每次派息、每月',
+    diviStart: '起点',
+    diviHave: '我持有股票',
+    diviInvest: '我要投入一笔钱',
+    diviCount: '股数',
+    diviAmount: '投资金额',
+    diviPrice: '每股价格',
+    diviAs: '股息填写方式',
+    diviAsPer: '每股每年 €',
+    diviAsYield: '收益率 %',
+    diviPer: '每股股息',
+    diviYield: '股息率',
+    diviFreq: '派息',
+    freq1: '每年', freq2: '每半年', freq4: '每季度', freq12: '每月',
+    diviTax: '按德国法律扣税',
+    diviPaper: '证券类型',
+    paperShare: '个股',
+    paperEtf: '股票 ETF 或基金（{v} 免税）',
+    paperMixed: '混合基金（{v} 免税）',
+    diviChurch: '教会税',
+    churchNone: '无',
+    church8: '{v}（巴伐利亚、巴登-符腾堡）',
+    church9: '{v}（其他州）',
+    diviAllowance: '储蓄者免税额（Sparer-Pauschbetrag）',
+    allowSingle: '{v}（单独申报）',
+    allowJoint: '{v}（合并申报）',
+    allowNone: '未提交免税委托',
+    diviUsed: '今年已用',
+    diviWht: '境外预扣税',
+    diviWhtPh: '美国：15',
+    diviTaxHint: '简化计算：资本收益按 25% 统一税（Abgeltungsteuer），另加其 5.5% 的团结附加税；有教会税时按 § 32d EStG 的公式计算，基金则先适用 § 20 InvStG 的部分免税。境外预扣税最多抵扣 15%（税收协定的常见税率）。某国超出部分（例如瑞士扣 35%）可向当地申请退还；Pocketsum 不计算这一部分。不构成税务建议。',
+    resNetYear: '每年税后', resNetMonth: '每月税后', resGrossYear: '每年税前',
+    resTaxes: '税款', resCapital: '本金',
+    netYield: '本金税后收益率 {v}',
+    grossYield: '税前收益率 {v}',
+    perHalf: '每半年 {v}', perQuarter: '每季度 {v}', perMonth: '每月 {v}',
+    onePayout: '每年派息一次',
+    noTax: '未计税',
+    allCovered: '全部在免税额内',
+    effRate: '实际税率 {v}',
+    partExempt: '{v} 部分免税',
+    whtAmount: '境外预扣税 {v}',
+    churchAmount: '教会税 {v}',
+    sharesLine: '{n} 股 · 每股每年 {v}',
+    diviGoal: '反过来算：每月想要的税后收入',
+    goalText: '要每月税后拿到 {v}，大约需要 {n} 股，按今天的价格即 {c} 本金。',
+    goalNone: '没有每股股息，就无法计算目标。',
+
+    tradeTitle: '交易成本',
+    tradeSub: '买入股票、ETF 或加密货币的真实成本',
+    tradeFees: '费用',
+    feesIncl: '已含在金额中',
+    feesPlus: '另外加收',
+    tradePrice: '价格（可选）',
+    tradePricePh: '例如 1 BTC {v}',
+    feeModel: '收费模式',
+    presetsLabel: '先用示例值开始——再填入你的服务商价目表',
+    presetCryptoInstant: '加密货币交易所，即时购买',
+    presetCryptoOrder: '加密货币交易所，订单簿',
+    presetNeo: '新型券商，固定 {v}',
+    presetPlan: '定投计划 {v}',
+    presetDirect: '网上银行',
+    presetOwn: '自定义数值',
+    feePct: '手续费', feeFix: '另加固定', feeMin: '最低',
+    feeSpread: '每次买入或卖出的加价',
+    spreadHint: '如果服务商给出的是买卖价差，请在这里填一半：一买一卖合计只付一次。',
+    roundTrip: '按相同条件计入卖出',
+    warnFees: '费用高于金额，没有剩下可投资的钱。',
+    resBuyCost: '买入成本',
+    resInvested: '实际投入',
+    resYouGet: '你得到',
+    resBreakEven: '价格需上涨',
+    breakEvenNote: '卖出时才能回本',
+    resRoundTrip: '买入 + 卖出合计',
+    feeAmount: '手续费 {v}',
+    spreadAmount: '加价 {v}',
+    ofPaid: '占已付金额 {v}',
+    paidTotal: '你共付 {v}',
+    paidOf: '在已付的 {v} 中',
+    units: '{v} 份',
+    effPrice: '实际每份 {v}，较价格 {p}',
+    sellNow: '立即卖出：{v}',
+
+    footPrivacy: '只在你的设备上计算。你输入的内容留在浏览器里，不会发送到任何地方；Pocketsum 不统计访问。',
+    footAdvice: '不构成税务或投资建议。示例费用只是演示用的数值，不是价目表。',
+    footOffline: '首次访问后，Pocketsum 无需联网也能使用。',
+    footDownload: '下载为单个文件',
+    footWerkstatt: 'Dennis_mit_2n 的工作坊',
+    footSource: 'GitHub 上的源代码',
+    footTranslations: '部分翻译由机器完成——欢迎指正。',
+    version: '版本 {v} · {d}'
+  },
+
+  ja: {
+    _name: '日本語',
+    tagline: 'あなたに何も求めない、5つの小さな計算機。',
+    themeLabel: '表示', themeSystem: 'システム', themeLight: 'ライト', themeDark: 'ダーク',
+    langLabel: '言語',
+    tabsLabel: '計算機',
+    tabMwst: '消費税', tabTip: 'チップ', tabSprit: '燃料費', tabDivi: '配当', tabTrade: '取引',
+    reset: 'リセット', copy: '結果をコピー', copied: 'コピーしました', copyFailed: 'コピーできませんでした', resetDone: 'リセットしました',
+    amount: '金額',
+    egValue: '例: {v}',
+    centAbbr: 'セント',
+    roundTo: '{v}単位',
+    unitKmMonth: 'km/月', unitPcs: '株', unitEurYear: '€/年', unitEurMonth: '€/月',
+
+    mwstTitle: '付加価値税（消費税）',
+    mwstSub: '税抜・税額・税込を双方向で',
+    mwstIs: '入力した金額は',
+    mwstNet: '税抜',
+    mwstGross: '税込',
+    mwstRate: '税率',
+    mwstCustom: 'その他',
+    mwstCustomAria: '税率をパーセントで入力',
+    mwstRateHint: '19% と 7% はドイツの税率です。ほかの国は「その他」に税率を入れてください。',
+    resNet: '税抜', resTax: '税額', resGross: '税込',
+    mwstWayNet: '計算: 税抜 × {f} = 税込。税額はその差です。',
+    mwstWayGross: '計算: 税込 ÷ {f} = 税抜。税額はその差です。',
+
+    tipTitle: 'チップ',
+    tipSub: '切り上げと割り勘つき',
+    tipBill: '請求額',
+    tipLegend: 'チップ',
+    tipCustom: 'その他',
+    tipCustomAria: 'チップの割合を入力',
+    tipRoundLegend: '合計を切り上げ',
+    tipRoundNone: '切り上げない',
+    tipRoundWhole: '1ユーロ単位',
+    tipPeople: '人数',
+    tipFewer: '1人減らす',
+    tipMore: '1人増やす',
+    resTip: 'チップ', resTotal: '合計', resPerPerson: '1人あたり',
+    tipOfWhich: 'うちチップ {v}',
+    tipSay: 'ひとこと:「{v}でお願いします」',
+    tipNone: 'チップなし、支払いは {v} です。',
+    tipEach: '1人 {v} ずつです。',
+
+    spritTitle: '燃料価格',
+    spritSub: '値上がりで、満タン1回・100 km・1か月あたりいくら増えるか',
+    spritNow: '現在の価格',
+    spritNew: '新しい価格',
+    spritChips: '新しい価格をすばやく設定: 現在の価格 …',
+    spritTank: 'タンク容量',
+    spritUse: '燃料消費量',
+    spritKm: '走行距離',
+    resRise: '値上がり', resFall: '値下がり',
+    resMoreMonth: '月あたりの増加', resLessMonth: '月あたりの減少',
+    perLitre: '1リットルあたり {v}',
+    perYear: '1年で {v}',
+    thCost: '費用', thNow: '現在', thNew: '新価格',
+    rowFill: '満タン', rowMonth: '月', rowYear: '年',
+    spritTableTitle: '現在の価格の前後の価格表',
+    spritStep: '刻み',
+    thDiffMonth: '± 月',
+    spritTableHint: '強調された行が現在の価格、枠のある行が新しい価格です。「満タン」はタンクをいっぱいにした場合、「± 月」はあなたの走行距離での現在の価格との差です。',
+
+    diviTitle: '配当',
+    diviSub: '税引前・税金・税引後 ― 年・支払いごと・月あたり',
+    diviStart: '出発点',
+    diviHave: '株を持っている',
+    diviInvest: '金額を投資する',
+    diviCount: '株数',
+    diviAmount: '投資額',
+    diviPrice: '1株あたりの株価',
+    diviAs: '配当の入力方法',
+    diviAsPer: '1株あたり年間 €',
+    diviAsYield: '利回り %',
+    diviPer: '1株あたり配当',
+    diviYield: '配当利回り',
+    diviFreq: '支払い',
+    freq1: '年1回', freq2: '年2回', freq4: '四半期ごと', freq12: '毎月',
+    diviTax: 'ドイツの法律に従って税金を差し引く',
+    diviPaper: '証券の種類',
+    paperShare: '個別株',
+    paperEtf: '株式 ETF・株式投信（{v} 非課税）',
+    paperMixed: '混合型ファンド（{v} 非課税）',
+    diviChurch: '教会税',
+    churchNone: 'なし',
+    church8: '{v}（バイエルン、バーデン＝ヴュルテンベルク）',
+    church9: '{v}（その他の州）',
+    diviAllowance: '貯蓄者控除額（Sparer-Pauschbetrag）',
+    allowSingle: '{v}（単独）',
+    allowJoint: '{v}（夫婦合算）',
+    allowNone: '免税申請なし',
+    diviUsed: '今年すでに使った額',
+    diviWht: '外国源泉税',
+    diviWhtPh: '米国: 15',
+    diviTaxHint: '簡易計算: 資本所得に一律 25% の税（Abgeltungsteuer）と、その 5.5% の連帯付加税。教会税がある場合は § 32d EStG の式を使い、ファンドでは先に § 20 InvStG の部分非課税が適用されます。外国源泉税は 15% まで控除されます（租税条約の一般的な税率）。スイス（35%）のようにそれを超えて差し引く国の場合、超過分は現地で還付を請求できます。Pocketsum はそれを計算しません。税務アドバイスではありません。',
+    resNetYear: '年間の手取り', resNetMonth: '月あたりの手取り', resGrossYear: '年間の税引前配当',
+    resTaxes: '税金', resCapital: '元本',
+    netYield: '元本に対する手取り利回り {v}',
+    grossYield: '税引前利回り {v}',
+    perHalf: '半年ごとに {v}', perQuarter: '四半期ごとに {v}', perMonth: '毎月 {v}',
+    onePayout: '年1回の支払い',
+    noTax: '税金なしで計算',
+    allCovered: 'すべて控除額の範囲内',
+    effRate: '実効 {v}',
+    partExempt: '{v} 部分非課税',
+    whtAmount: '外国源泉税 {v}',
+    churchAmount: '教会税 {v}',
+    sharesLine: '{n} 株 · 1株あたり年間 {v}',
+    diviGoal: '逆算: 毎月ほしい手取り',
+    goalText: '毎月 {v} の手取りには約 {n} 株、つまり今日の株価で {c} の元本が必要です。',
+    goalNone: '1株あたりの配当がないと目標を計算できません。',
+
+    tradeTitle: '取引コスト',
+    tradeSub: '株式・ETF・暗号資産を買うと実際いくらかかるか',
+    tradeFees: '手数料',
+    feesIncl: '金額に含まれる',
+    feesPlus: '金額に上乗せ',
+    tradePrice: '価格（任意）',
+    tradePricePh: '例: 1 BTC で {v}',
+    feeModel: '手数料モデル',
+    presetsLabel: '最初はサンプル値で ― 利用先の料金表を入れてください',
+    presetCryptoInstant: '暗号資産取引所、即時購入',
+    presetCryptoOrder: '暗号資産取引所、板取引',
+    presetNeo: 'ネオブローカー、定額 {v}',
+    presetPlan: '積立プラン {v}',
+    presetDirect: 'ネット銀行',
+    presetOwn: '自分で入力',
+    feePct: '手数料', feeFix: '＋定額', feeMin: '最低',
+    feeSpread: '売買ごとの上乗せ',
+    spreadHint: '利用先が売値と買値の差（スプレッド）を示している場合は、その半分をここに入れてください。買いと売りを合わせて一度だけかかります。',
+    roundTrip: '同じ条件での売却も計算に入れる',
+    warnFees: '手数料が金額を上回っています。投資に回せる分が残りません。',
+    resBuyCost: '購入コスト',
+    resInvested: '実際の投資額',
+    resYouGet: '受け取る量',
+    resBreakEven: '必要な値上がり',
+    breakEvenNote: '売ったときに損益ゼロに戻るまで',
+    resRoundTrip: '購入＋売却の合計',
+    feeAmount: '手数料 {v}',
+    spreadAmount: '上乗せ {v}',
+    ofPaid: '支払額の {v}',
+    paidTotal: '支払いは合計 {v}',
+    paidOf: '支払った {v} のうち',
+    units: '{v} 単位',
+    effPrice: '実質 1単位 {v}、価格比 {p}',
+    sellNow: 'すぐに売った場合: {v}',
+
+    footPrivacy: '計算はあなたの端末の中だけで行います。入力した内容はブラウザーに残り、どこにも送られません。Pocketsum は訪問を数えません。',
+    footAdvice: '税務・投資のアドバイスではありません。手数料の例は仮の値で、料金表ではありません。',
+    footOffline: '一度アクセスすれば、Pocketsum はオフラインでも動きます。',
+    footDownload: '1つのファイルとしてダウンロード',
+    footWerkstatt: 'Dennis_mit_2n の工房',
+    footSource: 'GitHub のソースコード',
+    footTranslations: '翻訳の一部は機械翻訳です。修正を歓迎します。',
+    version: 'バージョン {v} · {d}'
+  },
+
+  ko: {
+    _name: '한국어',
+    tagline: '당신에게 아무것도 바라지 않는 작은 계산기 다섯 개.',
+    themeLabel: '화면 모드', themeSystem: '시스템', themeLight: '라이트', themeDark: '다크',
+    langLabel: '언어',
+    tabsLabel: '계산기',
+    tabMwst: '부가세', tabTip: '팁', tabSprit: '연료비', tabDivi: '배당', tabTrade: '거래',
+    reset: '초기화', copy: '결과 복사', copied: '복사했습니다', copyFailed: '복사하지 못했습니다', resetDone: '초기화했습니다',
+    amount: '금액',
+    egValue: '예: {v}',
+    centAbbr: '센트',
+    roundTo: '{v} 단위',
+    unitKmMonth: 'km/월', unitPcs: '주', unitEurYear: '€/년', unitEurMonth: '€/월',
+
+    mwstTitle: '부가가치세',
+    mwstSub: '공급가, 세액, 합계를 양방향으로',
+    mwstIs: '입력한 금액은',
+    mwstNet: '공급가 (부가세 제외)',
+    mwstGross: '합계 (부가세 포함)',
+    mwstRate: '세율',
+    mwstCustom: '직접 입력',
+    mwstCustomAria: '세율을 퍼센트로 직접 입력',
+    mwstRateHint: '19%와 7%는 독일의 세율입니다. 다른 나라는 ‘직접 입력’에 세율을 넣으세요.',
+    resNet: '공급가', resTax: '부가세', resGross: '합계',
+    mwstWayNet: '계산: 공급가 × {f} = 합계. 세액은 그 차이입니다.',
+    mwstWayGross: '계산: 합계 ÷ {f} = 공급가. 세액은 그 차이입니다.',
+
+    tipTitle: '팁',
+    tipSub: '올림과 여러 명 나눠 내기 지원',
+    tipBill: '계산서 금액',
+    tipLegend: '팁',
+    tipCustom: '직접 입력',
+    tipCustomAria: '팁 비율 직접 입력',
+    tipRoundLegend: '합계 올림',
+    tipRoundNone: '올리지 않음',
+    tipRoundWhole: '1유로 단위',
+    tipPeople: '인원',
+    tipFewer: '한 명 줄이기',
+    tipMore: '한 명 늘리기',
+    resTip: '팁', resTotal: '합계', resPerPerson: '1인당',
+    tipOfWhich: '그중 팁 {v}',
+    tipSay: '이렇게 말하면 됩니다: “{v} 받으세요.”',
+    tipNone: '팁 없이 내는 금액은 {v}입니다.',
+    tipEach: '각자 {v}씩 냅니다.',
+
+    spritTitle: '연료 가격',
+    spritSub: '가격이 오르면 한 번 가득 채울 때, 100 km당, 한 달에 얼마가 더 드는지',
+    spritNow: '현재 가격',
+    spritNew: '새 가격',
+    spritChips: '새 가격 빠르게 정하기: 현재 가격 …',
+    spritTank: '연료 탱크 용량',
+    spritUse: '연료 소비량',
+    spritKm: '주행 거리',
+    resRise: '인상', resFall: '인하',
+    resMoreMonth: '월 추가 비용', resLessMonth: '월 절감액',
+    perLitre: '리터당 {v}',
+    perYear: '1년이면 {v}',
+    thCost: '비용', thNow: '현재', thNew: '새 가격',
+    rowFill: '가득 주유', rowMonth: '월', rowYear: '연',
+    spritTableTitle: '현재 가격 주변 가격표',
+    spritStep: '간격',
+    thDiffMonth: '± 월',
+    spritTableHint: '강조된 행이 현재 가격, 테두리가 있는 행이 새 가격입니다. ‘가득 주유’는 탱크를 가득 채운 경우이고, ‘± 월’은 주행 거리 기준으로 현재 가격과의 차이입니다.',
+
+    diviTitle: '배당',
+    diviSub: '세전, 세금, 세후 — 연간, 지급마다, 월간',
+    diviStart: '시작점',
+    diviHave: '주식을 가지고 있음',
+    diviInvest: '금액을 투자함',
+    diviCount: '주식 수',
+    diviAmount: '투자 금액',
+    diviPrice: '주당 가격',
+    diviAs: '배당 입력 방식',
+    diviAsPer: '주당 연간 €',
+    diviAsYield: '수익률 %',
+    diviPer: '주당 배당금',
+    diviYield: '배당 수익률',
+    diviFreq: '지급',
+    freq1: '연 1회', freq2: '연 2회', freq4: '분기마다', freq12: '매월',
+    diviTax: '독일 법에 따라 세금 공제',
+    diviPaper: '증권 종류',
+    paperShare: '개별 주식',
+    paperEtf: '주식형 ETF 또는 펀드 ({v} 비과세)',
+    paperMixed: '혼합형 펀드 ({v} 비과세)',
+    diviChurch: '교회세',
+    churchNone: '없음',
+    church8: '{v} (바이에른, 바덴뷔르템베르크)',
+    church9: '{v} (그 밖의 주)',
+    diviAllowance: '저축자 공제액 (Sparer-Pauschbetrag)',
+    allowSingle: '{v} (단독)',
+    allowJoint: '{v} (부부 합산)',
+    allowNone: '면세 신청 없음',
+    diviUsed: '올해 이미 쓴 금액',
+    diviWht: '외국 원천징수세',
+    diviWhtPh: '미국: 15',
+    diviTaxHint: '간단히 계산합니다: 자본 소득에 25% 정률세(Abgeltungsteuer), 그리고 그 세액의 5.5%인 연대세. 교회세가 있으면 § 32d EStG의 공식을 쓰고, 펀드는 먼저 § 20 InvStG의 부분 비과세가 적용됩니다. 외국 원천징수세는 15%까지 공제됩니다(조세 조약의 일반적인 세율). 스위스(35%)처럼 그보다 더 떼는 나라라면 초과분은 그 나라에서 돌려받을 수 있습니다. Pocketsum은 이를 계산하지 않습니다. 세무 상담이 아닙니다.',
+    resNetYear: '연간 세후', resNetMonth: '월간 세후', resGrossYear: '연간 세전',
+    resTaxes: '세금', resCapital: '원금',
+    netYield: '원금 대비 세후 수익률 {v}',
+    grossYield: '세전 수익률 {v}',
+    perHalf: '반기마다 {v}', perQuarter: '분기마다 {v}', perMonth: '매월 {v}',
+    onePayout: '연 1회 지급',
+    noTax: '세금 없이 계산',
+    allCovered: '전부 공제액 안에 들어감',
+    effRate: '실효 {v}',
+    partExempt: '{v} 부분 비과세',
+    whtAmount: '외국 원천징수세 {v}',
+    churchAmount: '교회세 {v}',
+    sharesLine: '{n}주 · 주당 연간 {v}',
+    diviGoal: '거꾸로: 매월 원하는 세후 금액',
+    goalText: '매월 세후 {v}씩 받으려면 약 {n}주, 즉 오늘 주가 기준으로 원금 {c} 정도가 필요합니다.',
+    goalNone: '주당 배당금이 없으면 목표를 계산할 수 없습니다.',
+
+    tradeTitle: '거래 비용',
+    tradeSub: '주식, ETF, 암호화폐를 살 때 실제로 드는 비용',
+    tradeFees: '수수료',
+    feesIncl: '금액에 포함',
+    feesPlus: '금액에 추가',
+    tradePrice: '가격 (선택)',
+    tradePricePh: '예: 1 BTC에 {v}',
+    feeModel: '수수료 모델',
+    presetsLabel: '시작용 예시 값 — 이용하는 곳의 요금표를 넣으세요',
+    presetCryptoInstant: '암호화폐 거래소, 즉시 구매',
+    presetCryptoOrder: '암호화폐 거래소, 호가창',
+    presetNeo: '네오 브로커, 정액 {v}',
+    presetPlan: '적립식 플랜 {v}',
+    presetDirect: '인터넷 은행',
+    presetOwn: '직접 입력한 값',
+    feePct: '수수료', feeFix: '+ 정액', feeMin: '최소',
+    feeSpread: '매수 또는 매도마다 붙는 가산액',
+    spreadHint: '이용하는 곳이 매수·매도 호가 차이(스프레드)를 알려 준다면 여기에 그 절반을 넣으세요. 매수와 매도를 합쳐 한 번만 듭니다.',
+    roundTrip: '같은 조건의 매도도 계산에 넣기',
+    warnFees: '수수료가 금액보다 큽니다. 투자할 돈이 남지 않습니다.',
+    resBuyCost: '매수 비용',
+    resInvested: '실제 투자액',
+    resYouGet: '받는 수량',
+    resBreakEven: '필요한 가격 상승',
+    breakEvenNote: '팔았을 때 본전이 되려면',
+    resRoundTrip: '매수 + 매도 합계',
+    feeAmount: '수수료 {v}',
+    spreadAmount: '가산액 {v}',
+    ofPaid: '낸 금액의 {v}',
+    paidTotal: '내는 금액은 모두 {v}',
+    paidOf: '낸 {v} 중',
+    units: '{v}개',
+    effPrice: '실제 단가 {v}, 가격 대비 {p}',
+    sellNow: '바로 팔면: {v}',
+
+    footPrivacy: '계산은 기기 안에서만 합니다. 입력한 내용은 브라우저에 남고 어디로도 보내지 않습니다. Pocketsum은 방문 수를 세지 않습니다.',
+    footAdvice: '세무나 투자 상담이 아닙니다. 수수료 예시는 예시 값일 뿐 요금표가 아닙니다.',
+    footOffline: '처음 한 번 방문한 뒤에는 인터넷 없이도 Pocketsum이 작동합니다.',
+    footDownload: '파일 하나로 내려받기',
+    footWerkstatt: 'Dennis_mit_2n의 공방',
+    footSource: 'GitHub의 소스 코드',
+    footTranslations: '번역의 일부는 기계 번역입니다. 수정 제안을 환영합니다.',
+    version: '버전 {v} · {d}'
+  }
+};
+</script>
+<script>
+(function () {
+  'use strict';
+  var VERSION = '1.0';
+  var VERSION_DATUM = new Date(2026, 9, 29);
+  var STORE = 'pocketsum.v1', LANG_KEY = 'pocketsum.lang', THEME_KEY = 'pocketsum.theme';
+  var TABS = ['mwst', 'tip', 'sprit', 'divi', 'trade'];
+  var TITEL = { mwst: 'mwstTitle', tip: 'tipTitle', sprit: 'spritTitle', divi: 'diviTitle', trade: 'tradeTitle' };
+  /* Zahlenformat je Sprache. Englisch nach britischer Schreibweise, weil es um Euro geht. */
+  var LOCALE = {
+    de: 'de-DE', en: 'en-GB', es: 'es-ES', fr: 'fr-FR', it: 'it-IT', nl: 'nl-NL', pl: 'pl-PL',
+    pt: 'pt-PT', tr: 'tr-TR', ru: 'ru-RU', hi: 'hi-IN', zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR'
+  };
+  /* Gebühren-Beispiele als Zahlen; ins Feld kommen sie im Format der gewählten Sprache. */
+  var PRESETS = {
+    'krypto-sofort': { prozent: 1.49, fix: 0, min: 0, spread: 0.5 },
+    'krypto-order':  { prozent: 0.25, fix: 0, min: 0, spread: 0.05 },
+    'neobroker':     { prozent: 0, fix: 1, min: 0, spread: 0 },
+    'sparplan':      { prozent: 1.5, fix: 0, min: 0, spread: 0 },
+    'direktbank':    { prozent: 0.25, fix: 4.9, min: 9.9, spread: 0 }
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  /* ---------- Sprache ---------- */
+  var lang = 'de', loc = 'de-DE', dezPunkt = false;
+  function erkenneSprache() {
+    try { var s = localStorage.getItem(LANG_KEY); if (s && I18N[s]) return s; } catch (e) {}
+    var c = navigator.languages || [navigator.language || 'en'];
+    for (var i = 0; i < c.length; i++) {
+      var k = String(c[i]).toLowerCase().split('-')[0];
+      if (I18N[k]) return k;
+    }
+    return 'en';
+  }
+  function t(key) {
+    var s = (I18N[lang] || I18N.de)[key];
+    if (s == null) s = I18N.en[key];
+    if (s == null) s = I18N.de[key];
+    return s == null ? key : s;
+  }
+  function fmt(key, p) {
+    return t(key).replace(/\{(\w+)\}/g, function (m, k) { return p && p[k] != null ? p[k] : m; });
+  }
+  function setzeSprache(code) {
+    lang = I18N[code] ? code : 'en';
+    loc = LOCALE[lang] || 'en-GB';
+    cache = {};
+    try {
+      var teil = new Intl.NumberFormat(loc).formatToParts(1.5).filter(function (x) { return x.type === 'decimal'; })[0];
+      dezPunkt = !!teil && teil.value === '.';
+    } catch (e) { dezPunkt = false; }
+  }
+
+  /* ---------- Zahlen formatieren ---------- */
+  var cache = {};
+  function nfx(key, opts) { return cache[key] || (cache[key] = new Intl.NumberFormat(loc, opts)); }
+  function num(x, d) {
+    d = d == null ? 2 : d;
+    return isFinite(x) ? nfx('n' + d, { minimumFractionDigits: d, maximumFractionDigits: d }).format(x) : '–';
+  }
+  function eur(x, d) {
+    d = d == null ? 2 : d;
+    return isFinite(x) ? nfx('e' + d, { style: 'currency', currency: 'EUR', minimumFractionDigits: d, maximumFractionDigits: d }).format(x) : '–';
+  }
+  /* Vorzeichen fest an die Zahl binden: Nach einem Bindestrich-Minus darf der Browser umbrechen,
+     und auf Englisch stünde dann „-“ allein am Zeilenende vor „€9.76“. Deshalb echtes Minuszeichen
+     und ein unsichtbarer Wortverbinder dahinter. */
+  function vorzeichenFest(s) { return s.replace(/^([+\-−])/, function (m, z) { return (z === '-' ? '−' : z) + '⁠'; }); }
+  /* Mit Vorzeichen; Beträge unter einem halben Cent gelten als null und bekommen keins. */
+  function eurVorz(x) {
+    if (!isFinite(x)) return '–';
+    if (Math.abs(x) < 0.005) return eur(0);
+    return vorzeichenFest(nfx('es', { style: 'currency', currency: 'EUR', signDisplay: 'always' }).format(x));
+  }
+  function pct(x, d) {
+    d = d == null ? 1 : d;
+    return isFinite(x) ? nfx('p' + d, { style: 'percent', minimumFractionDigits: d, maximumFractionDigits: d }).format(x / 100) : '–';
+  }
+  function pctVorz(x, d) {
+    d = d == null ? 1 : d;
+    if (!isFinite(x)) return '–';
+    return vorzeichenFest(nfx('ps' + d, { style: 'percent', minimumFractionDigits: d, maximumFractionDigits: d, signDisplay: 'exceptZero' }).format(x / 100));
+  }
+  function ct(x, d) { return num(x, d || 0) + ' ' + t('centAbbr'); }
+  function ctVorz(x, d) { return (x > 0 ? '+⁠' : x < 0 ? '−⁠' : '') + ct(Math.abs(x), d); }
+  /* So steht eine Zahl in einem Eingabefeld: ohne Tausenderpunkte, mit dem Dezimalzeichen der Sprache. */
+  function feldText(v, dez3) {
+    return nfx(dez3 ? 'f3' : 'f', { useGrouping: false, minimumFractionDigits: dez3 ? 3 : 0, maximumFractionDigits: dez3 ? 3 : 6 }).format(v);
+  }
+  /* Beim Sprachwechsel darf nichts gerundet werden: ein Krypto-Kurs wie 0,00000123 oder ein Spritpreis
+     von 1,7999 muss genau so bleiben. Intl nimmt dabei die kürzeste exakte Darstellung. */
+  function feldTextGenau(v, dez3) {
+    return nfx(dez3 ? 'g3' : 'g', { useGrouping: false, minimumFractionDigits: dez3 ? 3 : 0, maximumFractionDigits: 20 }).format(v);
+  }
+  /* data-n="art:wert" in Beschriftungen, siehe Kommentar über den Rechnern im HTML. */
+  function zahlText(spec) {
+    var p = spec.split(':'), art = p[0], v = parseFloat(p[1]);
+    var d = (p[1].split('.')[1] || '').length;
+    if (art === 'pct') return pct(v, d);
+    if (art === 'eur0') return eur(v, 0);
+    if (art === 'ct') return ct(v);
+    if (art === 'ctd') return ctVorz(v);
+    return num(v, d);
+  }
+
+  /* ---------- Eingaben lesen ---------- */
+  function lies(el) { return KG.parseZahl(el.value, el.hasAttribute('data-dez3'), dezPunkt); }
+  function val(id) { var el = $(id); return el ? lies(el) : NaN; }
+  function n(id, fallback) { var v = val(id); return isFinite(v) ? v : (fallback || 0); }
+  function radio(name) { var el = document.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : null; }
+  /* Kein Selektor aus Nutzerdaten bauen: gespeicherte Werte werden per Vergleich gefunden. */
+  function setzeRadio(name, wert) {
+    $$('main input[type="radio"]').some(function (el) {
+      if (el.name === name && el.value === String(wert)) { el.checked = true; return true; }
+      return false;
+    });
+  }
+  function txt(id, s) { var el = $(id); if (el && el.textContent !== s) el.textContent = s; }
+  function zeige(id, ja) { var el = $(id); if (el) el.hidden = !ja; }
+  function zahlFelder() { return $$('main input[inputmode]'); }
+
+  /* Feldinhalte von einer Schreibweise in die andere bringen, ohne ihre Bedeutung zu ändern:
+     „5.000“ auf Deutsch wird „5000“, „1,799“ wird auf Englisch „1.799“. Unlesbares bleibt stehen. */
+  function wandleFelder(alterDezPunkt, auchStandard) {
+    zahlFelder().forEach(function (el) {
+      var d3 = el.hasAttribute('data-dez3');
+      var alterWert = el.value, alterStandard = el.defaultValue;
+      if (auchStandard && alterStandard !== '') {
+        var s = KG.parseZahl(alterStandard, d3, alterDezPunkt);
+        if (isFinite(s)) el.defaultValue = feldTextGenau(s, d3);
+      }
+      if (alterWert !== '') {
+        var v = KG.parseZahl(alterWert, d3, alterDezPunkt);
+        el.value = isFinite(v) ? feldTextGenau(v, d3) : alterWert;
+      }
+    });
+  }
+
+  /* ---------- Texte setzen ---------- */
+  function wendeTexteAn() {
+    document.documentElement.lang = lang;
+    $$('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n'), spec = el.getAttribute('data-n');
+      el.textContent = spec ? fmt(key, { v: zahlText(spec) }) : t(key);
+    });
+    $$('[data-n]:not([data-i18n])').forEach(function (el) { el.textContent = zahlText(el.getAttribute('data-n')); });
+    $$('[data-i18n-ph]').forEach(function (el) {
+      el.placeholder = fmt(el.getAttribute('data-i18n-ph'), { v: el.getAttribute('data-ph-v') || '' });
+    });
+    $$('[data-ph-n]').forEach(function (el) {
+      var p = el.getAttribute('data-ph-n').split(':');
+      el.placeholder = num(parseFloat(p[0]), parseInt(p[1], 10));
+    });
+    $$('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+    var monat;
+    try { monat = new Intl.DateTimeFormat(loc, { month: 'long', year: 'numeric' }).format(VERSION_DATUM); } catch (e) { monat = '2026-10'; }
+    txt('version', fmt('version', { v: VERSION, d: monat }));
+    var sel = $('lang');
+    if (sel) sel.value = lang;
+    setzeTitel();
+  }
+  function setzeTitel() { document.title = 'Pocketsum – ' + t(TITEL[aktiverTab]); }
+
+  /* ---------- Toast ---------- */
+  var toastTimer;
+  function toast(s) {
+    var el = $('toast'); el.textContent = s; el.classList.add('zeigen');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.classList.remove('zeigen'); }, 1800);
+  }
+
+  /* ---------- Rechner ---------- */
+  function rechneMwst() {
+    var wahl = radio('mwst-satz');
+    var satz = wahl === 'eigen' ? n('mwst-satz-eigen') : parseFloat(wahl);
+    var istBrutto = radio('mwst-art') === 'brutto';
+    var r = KG.mwst(n('mwst-betrag'), satz, istBrutto);
+    txt('mwst-netto', eur(r.netto)); txt('mwst-steuer', eur(r.steuer)); txt('mwst-brutto', eur(r.brutto));
+    txt('mwst-satz-anzeige', pct(satz, satz % 1 ? 2 : 0));
+    $('mwst-k-netto').classList.toggle('haupt', istBrutto);
+    $('mwst-k-brutto').classList.toggle('haupt', !istBrutto);
+    var faktor = num(1 + satz / 100, satz % 1 ? 4 : 2);
+    txt('mwst-weg', fmt(istBrutto ? 'mwstWayGross' : 'mwstWayNet', { f: faktor }));
+  }
+
+  function rechneTip() {
+    var wahl = radio('tip-prozent');
+    var p = wahl === 'eigen' ? n('tip-prozent-eigen') : parseFloat(wahl);
+    var rech = n('tip-rechnung');
+    var r = KG.trinkgeld(rech, p, n('tip-personen', 1), parseFloat(radio('tip-rund')));
+    txt('tip-trinkgeld', eur(r.trinkgeld)); txt('tip-gesamt', eur(r.gesamt));
+    txt('tip-satz', isFinite(r.effektivProzent) ? '(' + pct(r.effektivProzent) + ')' : '');
+    zeige('tip-k-pro', r.personen > 1);
+    txt('tip-pro', eur(r.proPerson));
+    txt('tip-tippro', r.personen > 1 ? fmt('tipOfWhich', { v: eur(r.tipProPerson) }) : '');
+    var spruch = '';
+    if (rech > 0) {
+      spruch = fmt(r.trinkgeld > 0.004 ? 'tipSay' : 'tipNone', { v: eur(r.gesamt) });
+      if (r.personen > 1) spruch += ' ' + fmt('tipEach', { v: eur(r.proPerson) });
+    }
+    txt('tip-spruch', spruch);
+  }
+
+  function spritZelle(id, wert, vorzeichen) {
+    var el = $(id); if (!el) return;
+    el.textContent = vorzeichen ? eurVorz(wert) : eur(wert);
+    if (vorzeichen) { el.classList.toggle('plus', wert > 0.004); el.classList.toggle('minus', wert < -0.004); }
+  }
+  function rechneSprit() {
+    var alt = n('sprit-preis'), neu = n('sprit-neu'), tank = n('sprit-tank'), verb = n('sprit-verbrauch'), km = n('sprit-km');
+    var r = KG.sprit(alt, neu, tank, verb, km);
+    var sinkt = r.cent < -0.004;
+    txt('sprit-ueb-prozent', t(sinkt ? 'resFall' : 'resRise'));
+    txt('sprit-ueb-monat', t(sinkt ? 'resLessMonth' : 'resMoreMonth'));
+    txt('sprit-prozent', pctVorz(r.prozent));
+    txt('sprit-cent', isFinite(r.cent) ? fmt('perLitre', { v: ctVorz(r.cent, 1) }) : '');
+    txt('sprit-d-monat', eurVorz(r.diff.monat));
+    txt('sprit-d-jahr', fmt('perYear', { v: eurVorz(r.diff.jahr) }));
+    ['fuellung', '100', 'monat', 'jahr'].forEach(function (k) {
+      var key = k === '100' ? 'pro100' : k;
+      spritZelle('sprit-a-' + k, r.alt[key]); spritZelle('sprit-n-' + k, r.neu[key]);
+      spritZelle('sprit-d-' + k + (k === 'monat' || k === 'jahr' ? '2' : ''), r.diff[key], true);
+    });
+    var schritt = parseFloat(radio('sprit-schritt')) || 0.05;
+    var zeilen = KG.spritTabelle(alt, schritt, tank, verb, km, neu);
+    var tb = $('sprit-tabelle');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    var neuIdx = -1, best = Infinity;
+    zeilen.forEach(function (zl, i) { var d = Math.abs(zl.preis - neu); if (d < best) { best = d; neuIdx = i; } });
+    if (best > schritt / 2 + 1e-9) neuIdx = -1;
+    zeilen.forEach(function (zl, i) {
+      var tr = document.createElement('tr');
+      if (zl.aktuell) tr.className = 'aktuell';
+      if (i === neuIdx && !zl.aktuell) tr.className = 'neu';
+      [num(zl.preis, 3), eur(zl.fuellung), eur(zl.pro100), eur(zl.monat), eurVorz(zl.diffMonat)].forEach(function (s, j) {
+        var td = document.createElement('td'); td.textContent = s;
+        if (j === 4) td.className = zl.diffMonat > 0.004 ? 'plus' : zl.diffMonat < -0.004 ? 'minus' : '';
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+  }
+
+  function diviOptionen() {
+    var steuerAn = $('divi-steuer').checked;
+    return {
+      modus: radio('divi-modus'), anzahl: n('divi-anzahl'), betrag: n('divi-betrag'), kurs: n('divi-kurs'),
+      divModus: radio('divi-divmodus'), divJeAktie: n('divi-je'), rendite: n('divi-rendite'),
+      ausschuettungen: parseFloat(radio('divi-freq')) || 1,
+      steuer: { aktiv: steuerAn, kist: parseFloat(radio('divi-kist')) || 0, pauschbetrag: parseFloat(radio('divi-pausch')) || 0, genutzt: n('divi-genutzt'), quellensteuer: n('divi-quellen'), teilfrei: parseFloat(radio('divi-papier')) || 0 }
+    };
+  }
+  var JE_AUSSCHUETTUNG = { 2: 'perHalf', 4: 'perQuarter', 12: 'perMonth' };
+  function rechneDivi() {
+    var o = diviOptionen();
+    zeige('divi-steuerblock', o.steuer.aktiv);
+    var r = KG.dividende(o);
+    var jeKey = JE_AUSSCHUETTUNG[o.ausschuettungen];
+    txt('divi-netto', eur(r.netto));
+    txt('divi-netto-rendite', isFinite(r.renditeNetto) ? fmt('netYield', { v: pct(r.renditeNetto, 2) }) : '');
+    txt('divi-netto-monat', eur(r.nettoMonat));
+    txt('divi-netto-je', jeKey ? fmt(jeKey, { v: eur(r.nettoJeAusschuettung) }) : t('onePayout'));
+    txt('divi-brutto', eur(r.brutto));
+    var bj = [];
+    if (isFinite(r.renditeBrutto)) bj.push(fmt('grossYield', { v: pct(r.renditeBrutto, 2) }));
+    if (jeKey) bj.push(fmt(jeKey, { v: eur(r.bruttoJeAusschuettung) }));
+    txt('divi-brutto-je', bj.join(' · '));
+    txt('divi-steuer-gesamt', eur(r.steuer.gesamt));
+    var teile = [];
+    if (!o.steuer.aktiv) teile.push(t('noTax'));
+    else if (r.steuer.gesamt < 0.005 && r.brutto > 0) teile.push(t('allCovered'));
+    else {
+      if (isFinite(r.steuer.satz)) teile.push(fmt('effRate', { v: pct(r.steuer.satz, 2) }));
+      if (r.teilfrei > 0) teile.push(fmt('partExempt', { v: pct(r.teilfrei * 100, 0) }));
+      if (r.steuer.quellen > 0.004) teile.push(fmt('whtAmount', { v: eur(r.steuer.quellen) }));
+      if (r.steuer.kist > 0.004) teile.push(fmt('churchAmount', { v: eur(r.steuer.kist) }));
+    }
+    txt('divi-steuer-detail', teile.join(' · '));
+    txt('divi-kapital', eur(r.kapital));
+    txt('divi-anzahl-anzeige', fmt('sharesLine', { n: num(r.anzahl, r.anzahl % 1 ? 2 : 0), v: eur(r.divJeAktie) }));
+    var ziel = n('divi-ziel'), zt = '';
+    if (ziel > 0) {
+      var zr = KG.dividendeZiel(ziel, o);
+      zt = zr ? fmt('goalText', { v: eur(ziel), n: num(zr.anzahl, zr.anzahl < 10 ? 2 : 0), c: eur(zr.kapital) }) : t('goalNone');
+    }
+    txt('divi-ziel-text', zt);
+  }
+
+  function rechneTrade() {
+    var o = {
+      betrag: n('trade-betrag'), modus: radio('trade-modus'),
+      prozent: n('trade-prozent'), fix: n('trade-fix'), min: n('trade-min'), spread: n('trade-spread'),
+      kurs: n('trade-kurs'), runde: $('trade-runde').checked
+    };
+    var r = KG.trade(o);
+    txt('trade-warnung', r.warnung ? t('warnFees') : '');
+    txt('trade-kosten', eur(r.kauf.kosten));
+    var det = [];
+    if (r.kauf.gebuehr > 0.004) det.push(fmt('feeAmount', { v: eur(r.kauf.gebuehr) }));
+    if (r.kauf.spread > 0.004) det.push(fmt('spreadAmount', { v: eur(r.kauf.spread) }));
+    if (isFinite(r.kauf.kostenProzent)) det.push(fmt('ofPaid', { v: pct(r.kauf.kostenProzent, 2) }));
+    txt('trade-kosten-detail', det.join(' · '));
+    txt('trade-angelegt', eur(r.kauf.angelegt));
+    txt('trade-gezahlt', fmt(o.modus === 'plus' ? 'paidTotal' : 'paidOf', { v: eur(r.kauf.gezahlt) }));
+    var hatKurs = r.kauf.einheiten !== null;
+    zeige('trade-k-einheiten', hatKurs);
+    if (hatKurs) {
+      var e = r.kauf.einheiten;
+      var dez = e >= 100 ? 2 : e >= 1 ? 4 : 8;
+      txt('trade-einheiten', fmt('units', { v: num(e, dez) }));
+      /* Effektiver Kurs: so vergleicht man Anbieter – was kostet ein Stück wirklich, alle Kosten eingerechnet. */
+      var eff = e > 0 ? r.kauf.gezahlt / e : NaN, effProzent = (eff / o.kurs - 1) * 100;
+      txt('trade-eff', isFinite(eff) && isFinite(effProzent) ? fmt('effPrice', { v: eur(eff), p: pctVorz(effProzent, 2) }) : '');
+    }
+    zeige('trade-k-be', o.runde); zeige('trade-k-runde', o.runde);
+    if (o.runde) {
+      txt('trade-breakeven', isFinite(r.breakEvenProzent) ? pctVorz(r.breakEvenProzent, 2) : '–');
+      txt('trade-runde-kosten', eur(r.rundeKosten));
+      var rundeProzent = r.kauf.gezahlt > 0 ? r.rundeKosten / r.kauf.gezahlt * 100 : NaN;
+      var rd = [fmt('sellNow', { v: eurVorz(-r.sofortVerlust) })];
+      if (isFinite(rundeProzent)) rd.push(fmt('ofPaid', { v: pct(rundeProzent, 2) }));
+      txt('trade-runde-detail', rd.join(' · '));
+    }
+  }
+
+  var RECHNER = { mwst: rechneMwst, tip: rechneTip, sprit: rechneSprit, divi: rechneDivi, trade: rechneTrade };
+  function rechne(tab) {
+    try { RECHNER[tab](); }
+    catch (e) { if (window.console) console.error('Pocketsum', tab, e); /* alte Werte bleiben stehen, die Seite bleibt bedienbar */ }
+  }
+  function rechneAlle() { TABS.forEach(rechne); }
+
+  /* ---------- Sichtbarkeit abhängiger Felder (data-zeige="name=wert") ---------- */
+  function zeigeAbhaengige() {
+    $$('[data-zeige]').forEach(function (el) {
+      var p = el.getAttribute('data-zeige').split('=');
+      el.hidden = radio(p[0]) !== p[1];
+    });
+  }
+
+  /* ---------- Tabs ---------- */
+  var aktiverTab = 'mwst';
+  function zeigeTab(tab, fokus) {
+    if (TABS.indexOf(tab) < 0) tab = 'mwst';
+    aktiverTab = tab;
+    TABS.forEach(function (k) {
+      var b = $('tab-' + k), p = $('r-' + k), an = k === tab;
+      b.setAttribute('aria-selected', an ? 'true' : 'false');
+      b.tabIndex = an ? 0 : -1;
+      p.hidden = !an;
+    });
+    setzeTitel();
+    try { history.replaceState(null, '', '#' + tab); } catch (e) {}
+    if (fokus) $('tab-' + tab).focus();
+    rechne(tab);
+    speichere();
+  }
+  $$('.tab').forEach(function (b) {
+    b.addEventListener('click', function () { zeigeTab(b.id.replace('tab-', ''), false); });
+    b.addEventListener('keydown', function (ev) {
+      var i = TABS.indexOf(aktiverTab);
+      if (ev.key === 'ArrowRight') zeigeTab(TABS[(i + 1) % TABS.length], true);
+      else if (ev.key === 'ArrowLeft') zeigeTab(TABS[(i - 1 + TABS.length) % TABS.length], true);
+      else if (ev.key === 'Home') zeigeTab(TABS[0], true);
+      else if (ev.key === 'End') zeigeTab(TABS[TABS.length - 1], true);
+      else return;
+      ev.preventDefault();
+    });
+  });
+  window.addEventListener('hashchange', function () { zeigeTab(location.hash.replace('#', ''), false); });
+
+  /* ---------- Speichern und Laden ---------- */
+  /* dezPunkt wird mitgespeichert: so lassen sich die Feldinhalte beim Laden in eine andere
+     Schreibweise umrechnen, falls die Sprache inzwischen gewechselt hat. */
+  function speichere() {
+    try {
+      var d = { tab: aktiverTab, dezPunkt: dezPunkt, felder: {}, radios: {}, haken: {}, preset: aktivesPreset() };
+      $$('main input[id]').forEach(function (el) {
+        if (el.type === 'checkbox') d.haken[el.id] = el.checked;
+        else if (el.type !== 'radio') d.felder[el.id] = el.value;
+      });
+      $$('main input[type="radio"]:checked').forEach(function (el) { d.radios[el.name] = el.value; });
+      localStorage.setItem(STORE, JSON.stringify(d));
+    } catch (e) {}
+  }
+  function lade() {
+    try {
+      var d = JSON.parse(localStorage.getItem(STORE) || 'null');
+      if (!d || typeof d !== 'object') return null;
+      Object.keys(d.felder || {}).forEach(function (id) { var el = $(id); if (el && el.type !== 'radio' && el.type !== 'checkbox') el.value = String(d.felder[id]); });
+      Object.keys(d.radios || {}).forEach(function (name) { setzeRadio(name, d.radios[name]); });
+      Object.keys(d.haken || {}).forEach(function (id) { var el = $(id); if (el && el.type === 'checkbox') el.checked = !!d.haken[id]; });
+      if (d.preset) setzePresetChip(String(d.preset));
+      /* Ältere Stände (vor den Sprachen) kennen dezPunkt nicht: sie waren deutsch. */
+      var gespeichertMitPunkt = d.dezPunkt === true;
+      if (gespeichertMitPunkt !== dezPunkt) wandleFelder(gespeichertMitPunkt, false);
+      return d;
+    } catch (e) {
+      /* Kaputter Eintrag darf nicht jeden Start blockieren: wegwerfen und mit Standardwerten starten. */
+      try { localStorage.removeItem(STORE); } catch (e2) {}
+      return null;
+    }
+  }
+  /* Unlesbare Eingaben sichtbar machen statt still als 0 zu rechnen. */
+  function markiereFeld(el) {
+    if (el.type === 'radio' || el.type === 'checkbox') return;
+    var ung = el.value.trim() !== '' && !isFinite(lies(el));
+    el.setAttribute('aria-invalid', ung ? 'true' : 'false');
+    var huelle = el.closest('.eingabe');
+    if (huelle) huelle.classList.toggle('ungueltig', ung);
+  }
+  function markiereAlle() { $$('main input[id]').forEach(markiereFeld); }
+
+  /* ---------- Zurücksetzen (Standardwerte stehen im HTML) ---------- */
+  function zuruecksetzen(tab) {
+    var p = $('r-' + tab);
+    $$('input', p).forEach(function (el) {
+      if (el.type === 'radio' || el.type === 'checkbox') el.checked = el.defaultChecked;
+      else el.value = el.defaultValue;
+    });
+    if (tab === 'trade') setzePresetChip('krypto-sofort');
+    zeigeAbhaengige(); markiereAlle(); rechne(tab); speichere();
+    toast(t('resetDone'));
+  }
+
+  /* ---------- Ergebnis kopieren ---------- */
+  function zusammenfassung(tab) {
+    var p = $('r-' + tab), zeilen = [t(TITEL[tab]) + ' (Pocketsum)'];
+    var spruch = p.querySelector('.spruch');
+    if (spruch && spruch.textContent.trim()) zeilen.push(spruch.textContent.trim());
+    $$('.wert', p).forEach(function (w) {
+      if (w.hidden) return;
+      var b = w.querySelector('b'), z = w.querySelector('.z'), zu = w.querySelector('.zusatz');
+      var s = (b ? b.textContent.trim() : '') + ': ' + (z ? z.textContent.trim() : '');
+      if (zu && zu.textContent.trim()) s += ' (' + zu.textContent.trim() + ')';
+      zeilen.push(s);
+    });
+    /* Beim Sprit ist die Vergleichstabelle das eigentliche Ergebnis; die Preistabelle bleibt außen vor. */
+    var tabelle = tab === 'sprit' ? p.querySelector('table') : null;
+    if (tabelle) {
+      $$('tbody tr', tabelle).forEach(function (tr) {
+        var td = $$('td', tr).map(function (c) { return c.textContent.trim(); });
+        if (td.length === 4) zeilen.push(td[0] + ': ' + td[1] + ' → ' + td[2] + ' (' + td[3] + ')');
+      });
+    }
+    return zeilen.join('\n');
+  }
+  function kopiere(tab) {
+    var text = zusammenfassung(tab);
+    function fertig() { toast(t('copied')); }
+    function notnagel() {
+      try {
+        var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand('copy'); document.body.removeChild(ta);
+        if (ok) fertig(); else toast(t('copyFailed'));
+      } catch (e) { toast(t('copyFailed')); }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(fertig, notnagel);
+    else notnagel();
+  }
+
+  /* ---------- Gebühren-Beispiele ---------- */
+  function aktivesPreset() { var b = document.querySelector('#trade-presets .chip[aria-pressed="true"]'); return b ? b.getAttribute('data-preset') : 'eigen'; }
+  function setzePresetChip(name) {
+    $$('#trade-presets .chip').forEach(function (b) { b.setAttribute('aria-pressed', b.getAttribute('data-preset') === name ? 'true' : 'false'); });
+  }
+  function wendePresetAn(name) {
+    var p = PRESETS[name];
+    if (p) {
+      $('trade-prozent').value = feldText(p.prozent); $('trade-fix').value = feldText(p.fix);
+      $('trade-min').value = feldText(p.min); $('trade-spread').value = feldText(p.spread);
+    }
+    setzePresetChip(name);
+    markiereAlle(); rechne('trade'); speichere();
+  }
+
+  /* ---------- Ereignisse ---------- */
+  var main = document.querySelector('main');
+  main.addEventListener('input', function (ev) {
+    var el = ev.target;
+    if (!(el instanceof HTMLInputElement)) return;
+    var tab = el.closest('.rechner').getAttribute('data-tab');
+    var eigen = el.getAttribute('data-eigen');
+    if (eigen) setzeRadio(eigen, 'eigen');
+    if (tab === 'trade' && /^trade-(prozent|fix|min|spread)$/.test(el.id)) setzePresetChip('eigen');
+    if (el.type === 'radio' || el.type === 'checkbox') zeigeAbhaengige();
+    markiereFeld(el);
+    rechne(tab); speichere();
+  });
+  main.addEventListener('change', function (ev) {
+    var el = ev.target;
+    if (!(el instanceof HTMLInputElement)) return;
+    if (el.type === 'radio' || el.type === 'checkbox') { zeigeAbhaengige(); rechne(el.closest('.rechner').getAttribute('data-tab')); speichere(); }
+  });
+  main.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button');
+    if (!b) return;
+    if (b.hasAttribute('data-reset')) return zuruecksetzen(b.getAttribute('data-reset'));
+    if (b.hasAttribute('data-kopie')) return kopiere(b.getAttribute('data-kopie'));
+    if (b.hasAttribute('data-step')) {
+      var el = $('tip-personen'), v = Math.max(1, Math.round(n('tip-personen', 1)) + parseInt(b.getAttribute('data-step'), 10));
+      el.value = String(v); markiereFeld(el); rechne('tip'); speichere(); return;
+    }
+    if (b.hasAttribute('data-delta')) {
+      var alt = n('sprit-preis'), neu = Math.max(0, alt + parseFloat(b.getAttribute('data-delta')));
+      $('sprit-neu').value = feldText(neu, true); markiereFeld($('sprit-neu')); rechne('sprit'); speichere(); return;
+    }
+    if (b.hasAttribute('data-preset')) return wendePresetAn(b.getAttribute('data-preset'));
+  });
+
+  /* ---------- Darstellung ---------- */
+  var THEME_FARBE = { light: '#F2F3F8', dark: '#0F0F21' };
+  function setzeTheme(wahl, speichern) {
+    var d = document.documentElement;
+    if (wahl === 'light' || wahl === 'dark') d.setAttribute('data-theme', wahl);
+    else { d.removeAttribute('data-theme'); wahl = 'system'; }
+    $$('meta[name="theme-color"]').forEach(function (m) {
+      var standard = /dark/.test(m.getAttribute('media') || '') ? THEME_FARBE.dark : THEME_FARBE.light;
+      m.setAttribute('content', wahl === 'system' ? standard : THEME_FARBE[wahl]);
+    });
+    $('theme').value = wahl;
+    if (speichern) { try { localStorage.setItem(THEME_KEY, wahl); } catch (e) {} }
+  }
+  $('theme').addEventListener('change', function () { setzeTheme($('theme').value, true); });
+
+  /* ---------- Sprachwahl ---------- */
+  function baueSprachwahl() {
+    var sel = $('lang');
+    Object.keys(I18N).forEach(function (code) {
+      var o = document.createElement('option');
+      o.value = code; o.lang = code; o.textContent = I18N[code]._name;
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', function () {
+      var alterDezPunkt = dezPunkt;
+      setzeSprache(sel.value);
+      try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+      if (alterDezPunkt !== dezPunkt) wandleFelder(alterDezPunkt, true);
+      wendeTexteAn(); markiereAlle(); rechneAlle(); speichere();
+    });
+  }
+
+  /* ---------- Start ---------- */
+  var gespeichertesTheme = null;
+  try { gespeichertesTheme = localStorage.getItem(THEME_KEY); } catch (e) {}
+  setzeTheme(gespeichertesTheme, false);
+  baueSprachwahl();
+  setzeSprache(erkenneSprache());
+  /* Die Standardwerte im HTML sind deutsch geschrieben. */
+  if (dezPunkt) wandleFelder(false, true);
+  var gespeichert = lade();
+  /* Wer die Datei selbst geöffnet hat, braucht keinen Download-Link mehr. */
+  if (!/^https?:$/.test(location.protocol)) zeige('offline-zeile', false);
+  zeigeAbhaengige();
+  markiereAlle();
+  var startTab = location.hash.replace('#', '') || (gespeichert && gespeichert.tab) || 'mwst';
+  aktiverTab = TABS.indexOf(startTab) >= 0 ? startTab : 'mwst';
+  wendeTexteAn();
+  rechneAlle();
+  zeigeTab(aktiverTab, false);
+  document.documentElement.className = document.documentElement.className.replace(/\s*i18n-wartet/g, '');
+
+  /* Offline nach dem ersten Besuch: nur über http(s), eine geöffnete Datei braucht das nicht. */
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>
