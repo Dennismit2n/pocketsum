@@ -30,7 +30,7 @@
 
 ## Offline und als eine Datei
 
-Nach dem ersten Besuch hält ein Service Worker die App ohne Netz bereit; auf Android lässt sie sich zum Startbildschirm hinzufügen. Oder du lädst die Seite selbst herunter – „Als eine Datei herunterladen“ unten in der Fußzeile speichert `pocketsum.html`: Sie enthält alles (Gestaltung, Rechnungen, alle 14 Sprachen) und läuft per Doppelklick von deiner Festplatte.
+Nach dem ersten Besuch hält ein Service Worker die App ohne Netz bereit; in Chrome, Edge und Samsung Internet erscheint oben der Knopf „Installieren“, der sie als App einrichtet – auf dem Handy wie am PC. Oder du lädst die Seite selbst herunter – „Als eine Datei herunterladen“ unten in der Fußzeile speichert `pocketsum.html`: Sie enthält alles (Gestaltung, Rechnungen, alle 14 Sprachen) und läuft per Doppelklick von deiner Festplatte.
 
 ## Sprachen
 

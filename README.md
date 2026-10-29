@@ -30,7 +30,7 @@
 
 ## Offline and as a single file
 
-After the first visit, a service worker keeps the app available without a connection; it can be added to the home screen on Android. Or download the page itself – “Download as a single file” in the footer saves `pocketsum.html`: it contains everything (styles, the calculations, all 14 languages) and runs from your drive with a double click.
+After the first visit, a service worker keeps the app available without a connection; in Chrome, Edge and Samsung Internet an “Install” button appears at the top and sets it up as an app, on your phone or your computer. Or download the page itself – “Download as a single file” in the footer saves `pocketsum.html`: it contains everything (styles, the calculations, all 14 languages) and runs from your drive with a double click.
 
 ## Languages
 

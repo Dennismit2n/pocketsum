@@ -58,6 +58,14 @@
     d.className += ' i18n-wartet';
     setTimeout(function () { d.className = d.className.replace(/\s*i18n-wartet/g, ''); }, 3000);
   }
+  /* Chrome, Edge und Samsung Internet melden mit „beforeinstallprompt“, dass sich Pocketsum
+     installieren lässt. Das kann passieren, bevor das Skript am Seitenende läuft; darum wird das
+     Ereignis schon hier aufgehoben, und der Knopf „Installieren“ holt es sich dort ab. */
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    window.psInstall = e;
+    if (window.psInstallZeigen) window.psInstallZeigen();
+  });
 })();
 </script>
 <style>
@@ -73,6 +81,10 @@
   --soft: #585981;
   --accent: #524AAB;
   --accent-strong: #464480;
+  --install-bg: #524AAB;
+  --install-bg-hover: #464480;
+  --install-text: #F2F3F8;
+  --install-rand: #524AAB;
   --warn: #B45309;
   --bad: #BE123C;
   --c-mwst: #524AAB;
@@ -93,6 +105,10 @@
     --soft: #A6A6CB;
     --accent: #A5A5FF;
     --accent-strong: #B4B5FF;
+    --install-bg: #2E2E5A;
+    --install-bg-hover: #383870;
+    --install-text: #A5A5FF;
+    --install-rand: #5E5EB0;
     --warn: #FFC97A;
     --bad: #FF8A9B;
     --c-mwst: #A5A5FF;
@@ -112,6 +128,10 @@
   --soft: #A6A6CB;
   --accent: #A5A5FF;
   --accent-strong: #B4B5FF;
+  --install-bg: #2E2E5A;
+  --install-bg-hover: #383870;
+  --install-text: #A5A5FF;
+  --install-rand: #5E5EB0;
   --warn: #FFC97A;
   --bad: #FF8A9B;
   --c-mwst: #A5A5FF;
@@ -162,11 +182,32 @@ a { color: var(--accent); }
   color: var(--text);
   font-size: .88rem;
 }
+/* Hell ist der Knopf violett gefüllt; im Dunkeln nur getönt, sonst wäre er das grellste
+   auf der ganzen Seite. */
+.installieren {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--install-rand);
+  background: var(--install-bg);
+  color: var(--install-text);
+  font-size: .88rem;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.installieren:hover { background: var(--install-bg-hover); }
+.installieren svg { flex: none; }
 /* Am Telefon stehen beide Auswahlfelder in eigener Zeile, je halbe Breite: ein Auswahlfeld
-   ist so breit wie sein längster Eintrag, und der wächst mit jeder Sprache. */
+   ist so breit wie sein längster Eintrag, und der wächst mit jeder Sprache. Der Knopf
+   „Installieren“ bekommt darüber eine eigene, volle Zeile. */
 @media (max-width: 480px) {
-  .steuer { flex: 1 1 100%; }
+  .steuer { flex: 1 1 100%; flex-wrap: wrap; }
   .steuer select { flex: 1 1 0; min-width: 0; }
+  .installieren { flex: 1 1 100%; }
 }
 
 .tabs {
@@ -389,6 +430,7 @@ main input, main button, main label { scroll-margin-top: 84px; }
     <p class="unter" data-i18n="tagline">Fünf kleine Rechner, die nichts von dir wollen.</p>
   </div>
   <div class="steuer">
+    <button type="button" id="installieren" class="installieren" hidden><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="installBtn">Installieren</span></button>
     <label class="sr" for="theme" data-i18n="themeLabel">Darstellung</label>
     <select id="theme" autocomplete="off">
       <option value="system" data-i18n="themeSystem">System</option>
@@ -795,7 +837,7 @@ main input, main button, main label { scroll-margin-top: 84px; }
   <p id="offline-zeile"><span data-i18n="footOffline">Nach dem ersten Besuch läuft Pocketsum auch ohne Netz.</span> <a id="download" href="./index.html" download="pocketsum.html" data-i18n="footDownload">Als eine Datei herunterladen</a></p>
   <p><a href="https://dennismit2n.github.io/" data-i18n="footWerkstatt">Eine Werkstatt von Dennis_mit_2n</a> <span class="sep" aria-hidden="true">·</span> <a href="https://github.com/Dennismit2n/pocketsum" data-i18n="footSource">Quelltext auf GitHub</a></p>
   <p data-i18n="footTranslations">Übersetzungen teils maschinell – Korrekturen sind willkommen.</p>
-  <p><span id="version">Version 1.0</span> <span class="sep" aria-hidden="true">·</span> © 2026 Dennis_mit_2n</p>
+  <p><span id="version">Version 1.1</span> <span class="sep" aria-hidden="true">·</span> © 2026 Dennis_mit_2n</p>
 </footer>
 
 <div id="toast" role="status" aria-live="polite"></div>
@@ -1194,6 +1236,8 @@ var I18N = {
     footAdvice: 'Keine Steuer- oder Anlageberatung. Die Gebühren-Beispiele sind Platzhalter, keine Preislisten.',
     footOffline: 'Nach dem ersten Besuch läuft Pocketsum auch ohne Netz.',
     footDownload: 'Als eine Datei herunterladen',
+    installBtn: 'Installieren',
+    installDone: 'Pocketsum ist installiert.',
     footWerkstatt: 'Eine Werkstatt von Dennis_mit_2n',
     footSource: 'Quelltext auf GitHub',
     footTranslations: 'Übersetzungen teils maschinell – Korrekturen sind willkommen.',
@@ -1352,6 +1396,8 @@ var I18N = {
     footAdvice: 'Not tax or investment advice. The fee examples are placeholders, not price lists.',
     footOffline: 'After the first visit, Pocketsum also works without a connection.',
     footDownload: 'Download as a single file',
+    installBtn: 'Install',
+    installDone: 'Pocketsum is installed.',
     footWerkstatt: 'A workshop by Dennis_mit_2n',
     footSource: 'Source code on GitHub',
     footTranslations: 'Translations are partly machine-made – corrections are welcome.',
@@ -1511,6 +1557,8 @@ var I18N = {
     footAdvice: 'No es asesoramiento fiscal ni de inversión. Las comisiones de ejemplo son solo valores de muestra, no tarifas reales.',
     footOffline: 'Tras la primera visita, Pocketsum funciona también sin conexión.',
     footDownload: 'Descargar como un solo archivo',
+    installBtn: 'Instalar',
+    installDone: 'Pocketsum está instalado.',
     footWerkstatt: 'Un taller de Dennis_mit_2n',
     footSource: 'Código fuente en GitHub',
     footTranslations: 'Traducciones en parte automáticas: las correcciones son bienvenidas.',
@@ -1669,6 +1717,8 @@ var I18N = {
     footAdvice: 'Ni conseil fiscal ni conseil en investissement. Les frais d’exemple ne sont que des valeurs de démonstration, pas des grilles tarifaires.',
     footOffline: 'Après la première visite, Pocketsum fonctionne aussi sans connexion.',
     footDownload: 'Télécharger en un seul fichier',
+    installBtn: 'Installer',
+    installDone: 'Pocketsum est installé.',
     footWerkstatt: 'Un atelier de Dennis_mit_2n',
     footSource: 'Code source sur GitHub',
     footTranslations: 'Traductions en partie automatiques – les corrections sont les bienvenues.',
@@ -1827,6 +1877,8 @@ var I18N = {
     footAdvice: 'Non è consulenza fiscale né d’investimento. Le commissioni di esempio sono solo valori dimostrativi, non listini.',
     footOffline: 'Dopo la prima visita Pocketsum funziona anche senza connessione.',
     footDownload: 'Scarica come un unico file',
+    installBtn: 'Installa',
+    installDone: 'Pocketsum è installato.',
     footWerkstatt: 'Un’officina di Dennis_mit_2n',
     footSource: 'Codice sorgente su GitHub',
     footTranslations: 'Traduzioni in parte automatiche – le correzioni sono benvenute.',
@@ -1985,6 +2037,8 @@ var I18N = {
     footAdvice: 'Geen belasting- of beleggingsadvies. De kostenvoorbeelden zijn alleen invulvoorbeelden, geen prijslijsten.',
     footOffline: 'Na het eerste bezoek werkt Pocketsum ook zonder verbinding.',
     footDownload: 'Downloaden als één bestand',
+    installBtn: 'Installeren',
+    installDone: 'Pocketsum is geïnstalleerd.',
     footWerkstatt: 'Een werkplaats van Dennis_mit_2n',
     footSource: 'Broncode op GitHub',
     footTranslations: 'Vertalingen deels automatisch – correcties zijn welkom.',
@@ -2143,6 +2197,8 @@ var I18N = {
     footAdvice: 'To nie jest doradztwo podatkowe ani inwestycyjne. Przykładowe opłaty to tylko wartości zastępcze, a nie cenniki.',
     footOffline: 'Po pierwszej wizycie Pocketsum działa też bez internetu.',
     footDownload: 'Pobierz jako jeden plik',
+    installBtn: 'Zainstaluj',
+    installDone: 'Pocketsum jest zainstalowany.',
     footWerkstatt: 'Warsztat Dennis_mit_2n',
     footSource: 'Kod źródłowy na GitHubie',
     footTranslations: 'Tłumaczenia częściowo maszynowe – poprawki mile widziane.',
@@ -2301,6 +2357,8 @@ var I18N = {
     footAdvice: 'Não é aconselhamento fiscal nem de investimento. As comissões de exemplo são apenas valores ilustrativos, não preçários.',
     footOffline: 'Depois da primeira visita, o Pocketsum também funciona sem ligação.',
     footDownload: 'Descarregar como um único ficheiro',
+    installBtn: 'Instalar',
+    installDone: 'O Pocketsum está instalado.',
     footWerkstatt: 'Uma oficina de Dennis_mit_2n',
     footSource: 'Código-fonte no GitHub',
     footTranslations: 'Traduções em parte automáticas – correções são bem-vindas.',
@@ -2460,6 +2518,8 @@ var I18N = {
     footAdvice: 'Vergi veya yatırım danışmanlığı değildir. Örnek ücretler yalnızca yer tutucudur, fiyat listesi değildir.',
     footOffline: 'İlk ziyaretten sonra Pocketsum bağlantı olmadan da çalışır.',
     footDownload: 'Tek bir dosya olarak indir',
+    installBtn: 'Yükle',
+    installDone: 'Pocketsum yüklendi.',
     footWerkstatt: 'Dennis_mit_2n’nin bir atölyesi',
     footSource: 'GitHub’da kaynak kodu',
     footTranslations: 'Çeviriler kısmen makine çevirisidir – düzeltmeler memnuniyetle karşılanır.',
@@ -2618,6 +2678,8 @@ var I18N = {
     footAdvice: 'Это не налоговая и не инвестиционная консультация. Примеры комиссий — лишь условные значения, а не тарифы.',
     footOffline: 'После первого посещения Pocketsum работает и без интернета.',
     footDownload: 'Скачать одним файлом',
+    installBtn: 'Установить',
+    installDone: 'Pocketsum установлен.',
     footWerkstatt: 'Мастерская Dennis_mit_2n',
     footSource: 'Исходный код на GitHub',
     footTranslations: 'Переводы частично машинные — исправления приветствуются.',
@@ -2776,6 +2838,8 @@ var I18N = {
     footAdvice: 'यह कर या निवेश सलाह नहीं है। उदाहरण वाले शुल्क सिर्फ़ नमूने हैं, रेट लिस्ट नहीं।',
     footOffline: 'पहली विज़िट के बाद Pocketsum बिना इंटरनेट के भी चलता है।',
     footDownload: 'एक फ़ाइल के रूप में डाउनलोड करें',
+    installBtn: 'इंस्टॉल करें',
+    installDone: 'Pocketsum इंस्टॉल हो गया।',
     footWerkstatt: 'Dennis_mit_2n की एक वर्कशॉप',
     footSource: 'GitHub पर सोर्स कोड',
     footTranslations: 'अनुवाद आंशिक रूप से मशीन से हैं – सुधार का स्वागत है।',
@@ -2934,6 +2998,8 @@ var I18N = {
     footAdvice: '不构成税务或投资建议。示例费用只是演示用的数值，不是价目表。',
     footOffline: '首次访问后，Pocketsum 无需联网也能使用。',
     footDownload: '下载为单个文件',
+    installBtn: '安装',
+    installDone: 'Pocketsum 已安装。',
     footWerkstatt: 'Dennis_mit_2n 的工作坊',
     footSource: 'GitHub 上的源代码',
     footTranslations: '部分翻译由机器完成——欢迎指正。',
@@ -3092,6 +3158,8 @@ var I18N = {
     footAdvice: '税務・投資のアドバイスではありません。手数料の例は仮の値で、料金表ではありません。',
     footOffline: '一度アクセスすれば、Pocketsum はオフラインでも動きます。',
     footDownload: '1つのファイルとしてダウンロード',
+    installBtn: 'インストール',
+    installDone: 'Pocketsum をインストールしました。',
     footWerkstatt: 'Dennis_mit_2n の工房',
     footSource: 'GitHub のソースコード',
     footTranslations: '翻訳の一部は機械翻訳です。修正を歓迎します。',
@@ -3250,6 +3318,8 @@ var I18N = {
     footAdvice: '세무나 투자 상담이 아닙니다. 수수료 예시는 예시 값일 뿐 요금표가 아닙니다.',
     footOffline: '처음 한 번 방문한 뒤에는 인터넷 없이도 Pocketsum이 작동합니다.',
     footDownload: '파일 하나로 내려받기',
+    installBtn: '설치',
+    installDone: 'Pocketsum이 설치되었습니다.',
     footWerkstatt: 'Dennis_mit_2n의 공방',
     footSource: 'GitHub의 소스 코드',
     footTranslations: '번역의 일부는 기계 번역입니다. 수정 제안을 환영합니다.',
@@ -3260,7 +3330,7 @@ var I18N = {
 <script>
 (function () {
   'use strict';
-  var VERSION = '1.0';
+  var VERSION = '1.1';
   var VERSION_DATUM = new Date(2026, 9, 29);
   var STORE = 'pocketsum.v1', LANG_KEY = 'pocketsum.lang', THEME_KEY = 'pocketsum.theme';
   var TABS = ['mwst', 'tip', 'sprit', 'divi', 'trade'];
@@ -3428,6 +3498,29 @@ var I18N = {
     var el = $('toast'); el.textContent = s; el.classList.add('zeigen');
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.classList.remove('zeigen'); }, 1800);
   }
+
+  /* ---------- Installieren ----------
+     Der Knopf erscheint erst, wenn der Browser die Installation anbietet (das Ereignis hebt das
+     Kopf-Skript auf), und öffnet dann dessen Installationsdialog. Ein Ereignis reicht nur für
+     einen Dialog: Wer abbricht, sieht den Knopf wieder, sobald der Browser ein neues schickt.
+     In der installierten App bleibt er weg. */
+  function alsApp() {
+    return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+  }
+  function zeigeInstall() { zeige('installieren', !!window.psInstall && !alsApp()); }
+  window.psInstallZeigen = zeigeInstall;
+  $('installieren').addEventListener('click', function () {
+    var e = window.psInstall;
+    window.psInstall = null;
+    zeigeInstall();
+    if (!e) return;
+    try { var p = e.prompt(); if (p && p.catch) p.catch(function () {}); } catch (x) {}
+  });
+  window.addEventListener('appinstalled', function () {
+    window.psInstall = null;
+    zeigeInstall();
+    toast(t('installDone'));
+  });
 
   /* ---------- Rechner ---------- */
   function rechneMwst() {
@@ -3813,6 +3906,7 @@ var I18N = {
   /* Wer die Datei selbst geöffnet hat, braucht keinen Download-Link mehr. */
   if (!/^https?:$/.test(location.protocol)) zeige('offline-zeile', false);
   zeigeAbhaengige();
+  zeigeInstall();
   markiereAlle();
   var startTab = location.hash.replace('#', '') || (gespeichert && gespeichert.tab) || 'mwst';
   aktiverTab = TABS.indexOf(startTab) >= 0 ? startTab : 'mwst';
