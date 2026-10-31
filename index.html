@@ -41,9 +41,21 @@
    (wie in I18N weiter unten): wer eine Sprache hinzufügt, trägt sie an beiden Stellen ein. */
 (function () {
   var d = document.documentElement;
+  /* Darstellung (Sehhilfen der Werkstatt, 31.10.2026): die gemeinsame Wahl aller Werkzeuge
+     (werkstatt.darstellung, sonst pocketsum.theme). data-theme trägt hell/dunkel, data-vision
+     Hoher Kontrast, Farbenblind und Umkehr; dieselbe Auflösung steht unten in setzeTheme. */
   try {
-    var th = localStorage.getItem('pocketsum.theme');
-    if (th === 'light' || th === 'dark') d.setAttribute('data-theme', th);
+    var th = localStorage.getItem('werkstatt.darstellung') || localStorage.getItem('pocketsum.theme');
+    var mm = window.matchMedia, ts = null, vs = null;
+    if (th === 'light' || th === 'dark') ts = th;
+    else if (th === 'hc-dark' || th === 'hc-light') { ts = th.slice(3); vs = 'contrast'; }
+    else if (th === 'cvd-dark' || th === 'cvd-light') { ts = th.slice(4); vs = 'cvd'; }
+    else if (th === 'invert') vs = 'invert';
+    else if (th && /dark/.test(th)) ts = 'dark';
+    else if (th && /light/.test(th)) ts = 'light';
+    else if (mm && mm('(prefers-contrast: more)').matches) { ts = mm('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; vs = 'contrast'; }
+    if (ts) d.setAttribute('data-theme', ts);
+    if (vs) d.setAttribute('data-vision', vs);
   } catch (e) {}
   var codes = ['de','en','es','fr','it','nl','pl','pt','tr','ru','hi','zh','ja','ko'], lang = null;
   try { var s = localStorage.getItem('pocketsum.lang'); if (codes.indexOf(s) >= 0) lang = s; } catch (e) {}
@@ -420,6 +432,54 @@ footer .sep { opacity: .7; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 main input, main button, main label { scroll-margin-top: 84px; }
 @media (prefers-reduced-motion: reduce) { #toast { transition: none; } }
+
+/* Sehhilfen der Werkstatt (31.10.2026): Hoher Kontrast, Farbenblind, Umgekehrte Farben.
+   Eine Wahl für alle Werkzeuge (werkstatt.darstellung). data-theme trägt hell/dunkel wie bisher,
+   data-vision contrast, cvd oder invert. Die Farbblöcke oben bleiben, wie sie sind. */
+
+/* Hoher Kontrast dunkel: Schwarz, Schrift #E0E0E0 (15,91:1); Akzent, Warnung und „schlecht“ halten
+   im Dunkeln schon 7:1 (schlechtester Wert 8,35 auf der zweiten Fläche #121212) */
+:root[data-vision="contrast"][data-theme="dark"] {
+  --bg: #000000; --panel: #000000; --panel-2: #121212; --border: #A0A0A0;
+  --text: #E0E0E0; --soft: #C4C4C4;
+  --install-bg: #000000; --install-bg-hover: #121212; --install-rand: #A5A5FF;
+}
+/* Hoher Kontrast hell: Weiß, Schrift Schwarz, Farben nachgedunkelt (gleicher Farbton) */
+:root[data-vision="contrast"][data-theme="light"] {
+  --bg: #FFFFFF; --panel: #FFFFFF; --panel-2: #EFEFEF; --border: #585757;
+  --text: #000000; --soft: #2B2B2B;
+  --accent: #4A40A0;           /* 7,21 auf --panel-2 */
+  --warn: #823900;             /* 7,21 */
+  --bad: #A0002F;              /* 7,20 */
+  --install-bg: #4A40A0; --install-bg-hover: #464480; --install-text: #FFFFFF; --install-rand: #4A40A0;
+}
+:root[data-vision="contrast"] :is(.steuer select, .eingabe, .tab, .klein, .segment label > span) { border-width: 2px; }
+:root[data-vision="contrast"] footer .sep { opacity: 1; }
+/* Das Hauptergebnis trägt die Rechnerfarbe als Schrift; die 14-%-Tönung dahinter drückte sie unter 7:1 */
+:root[data-vision="contrast"] .wert.haupt { background: var(--panel-2); border-width: 2px; }
+:root[data-vision="contrast"][data-theme="light"] { --c-mwst: #4A40A0; --c-tip: #823900; --c-sprit: #005280; --c-divi: #005B27; --c-trade: #A0002F; }
+:root[data-vision="contrast"] footer a { text-decoration: underline; }
+:root[data-vision="contrast"] :is(button, input, select, a):focus-visible { outline-width: 3px; }
+
+/* Farbenblind: Warnung und „schlecht“ in Okabe-Ito-Tönen, die bei Rot-Grün- und Blau-Gelb-Schwäche
+   auseinanderzuhalten sind; „schlecht“ im Hellen zusätzlich dunkler. Die Bedeutung steht ohnehin
+   als Text, Vorzeichen oder Hinweis da. */
+:root[data-vision="cvd"][data-theme="light"] { --warn: #956500; --bad: #974100; }
+:root[data-vision="cvd"][data-theme="dark"] { --warn: #F0E442; --bad: #E8743A; }
+
+/* Umgekehrte Farben wie der Farbfilter von Windows. Umdrehen erhält den WCAG-Kontrast nicht:
+   „schlecht“ käme im Dunkeln umgedreht auf 4,19; leicht angehoben hält es 4,6. */
+:root[data-vision="invert"] { filter: invert(1); }
+:root[data-vision="invert"] :is(img:not([src*=".svg"]), video, [data-echt]):not([data-echt] *) { filter: invert(1); }
+:root[data-vision="invert"] footer .sep { opacity: 1; }
+@media (prefers-color-scheme: dark) {
+  /* … und die leise Beschriftung auf der getönten Fläche des Hauptergebnisses auf 4,21 */
+  :root[data-vision="invert"] { --bad: #FF91A1; --soft: #ABACD1; }
+}
+@media print {
+  :root[data-vision="invert"],
+  :root[data-vision="invert"] :is(img:not([src*=".svg"]), video, [data-echt]):not([data-echt] *) { filter: none; }
+}
 </style>
 </head>
 <body>
@@ -436,6 +496,11 @@ main input, main button, main label { scroll-margin-top: 84px; }
       <option value="system" data-i18n="themeSystem">System</option>
       <option value="light" data-i18n="themeLight">Hell</option>
       <option value="dark" data-i18n="themeDark">Dunkel</option>
+      <option value="hc-dark" data-i18n="themeHcDark">Hoher Kontrast dunkel</option>
+      <option value="hc-light" data-i18n="themeHcLight">Hoher Kontrast hell</option>
+      <option value="cvd-dark" data-i18n="themeCvdDark">Farbenblind dunkel</option>
+      <option value="cvd-light" data-i18n="themeCvdLight">Farbenblind hell</option>
+      <option value="invert" data-i18n="themeInvert">Umgekehrte Farben</option>
     </select>
     <label class="sr" for="lang" data-i18n="langLabel">Sprache</label>
     <select id="lang" autocomplete="off"></select>
@@ -1088,6 +1153,11 @@ var I18N = {
     _name: 'Deutsch',
     tagline: 'Fünf kleine Rechner, die nichts von dir wollen.',
     themeLabel: 'Darstellung', themeSystem: 'System', themeLight: 'Hell', themeDark: 'Dunkel',
+    themeHcDark: 'Hoher Kontrast dunkel',
+    themeHcLight: 'Hoher Kontrast hell',
+    themeCvdDark: 'Farbenblind dunkel',
+    themeCvdLight: 'Farbenblind hell',
+    themeInvert: 'Umgekehrte Farben',
     langLabel: 'Sprache',
     tabsLabel: 'Rechner',
     tabMwst: 'MwSt', tabTip: 'Trinkgeld', tabSprit: 'Sprit', tabDivi: 'Dividende', tabTrade: 'Trade',
@@ -1248,6 +1318,11 @@ var I18N = {
     _name: 'English',
     tagline: 'Five small calculators that want nothing from you.',
     themeLabel: 'Appearance', themeSystem: 'System', themeLight: 'Light', themeDark: 'Dark',
+    themeHcDark: 'High contrast dark',
+    themeHcLight: 'High contrast light',
+    themeCvdDark: 'Colour-blind dark',
+    themeCvdLight: 'Colour-blind light',
+    themeInvert: 'Inverted colours',
     langLabel: 'Language',
     tabsLabel: 'Calculators',
     tabMwst: 'VAT', tabTip: 'Tip', tabSprit: 'Fuel', tabDivi: 'Dividends', tabTrade: 'Trade',
@@ -1409,6 +1484,11 @@ var I18N = {
     _name: 'Español',
     tagline: 'Cinco pequeñas calculadoras que no quieren nada de ti.',
     themeLabel: 'Apariencia', themeSystem: 'Sistema', themeLight: 'Claro', themeDark: 'Oscuro',
+    themeHcDark: 'Alto contraste oscuro',
+    themeHcLight: 'Alto contraste claro',
+    themeCvdDark: 'Daltónico oscuro',
+    themeCvdLight: 'Daltónico claro',
+    themeInvert: 'Colores invertidos',
     langLabel: 'Idioma',
     tabsLabel: 'Calculadoras',
     tabMwst: 'IVA', tabTip: 'Propina', tabSprit: 'Gasolina', tabDivi: 'Dividendos', tabTrade: 'Trading',
@@ -1569,6 +1649,11 @@ var I18N = {
     _name: 'Français',
     tagline: 'Cinq petites calculatrices qui ne vous demandent rien.',
     themeLabel: 'Apparence', themeSystem: 'Système', themeLight: 'Clair', themeDark: 'Sombre',
+    themeHcDark: 'Contraste élevé sombre',
+    themeHcLight: 'Contraste élevé clair',
+    themeCvdDark: 'Daltonien sombre',
+    themeCvdLight: 'Daltonien clair',
+    themeInvert: 'Couleurs inversées',
     langLabel: 'Langue',
     tabsLabel: 'Calculatrices',
     tabMwst: 'TVA', tabTip: 'Pourboire', tabSprit: 'Carburant', tabDivi: 'Dividendes', tabTrade: 'Bourse',
@@ -1729,6 +1814,11 @@ var I18N = {
     _name: 'Italiano',
     tagline: 'Cinque piccole calcolatrici che non vogliono niente da te.',
     themeLabel: 'Aspetto', themeSystem: 'Sistema', themeLight: 'Chiaro', themeDark: 'Scuro',
+    themeHcDark: 'Contrasto elevato scuro',
+    themeHcLight: 'Contrasto elevato chiaro',
+    themeCvdDark: 'Daltonico scuro',
+    themeCvdLight: 'Daltonico chiaro',
+    themeInvert: 'Colori invertiti',
     langLabel: 'Lingua',
     tabsLabel: 'Calcolatrici',
     tabMwst: 'IVA', tabTip: 'Mancia', tabSprit: 'Carburante', tabDivi: 'Dividendi', tabTrade: 'Trading',
@@ -1889,6 +1979,11 @@ var I18N = {
     _name: 'Nederlands',
     tagline: 'Vijf kleine rekenhulpjes die niets van je willen.',
     themeLabel: 'Weergave', themeSystem: 'Systeem', themeLight: 'Licht', themeDark: 'Donker',
+    themeHcDark: 'Hoog contrast donker',
+    themeHcLight: 'Hoog contrast licht',
+    themeCvdDark: 'Kleurenblind donker',
+    themeCvdLight: 'Kleurenblind licht',
+    themeInvert: 'Omgekeerde kleuren',
     langLabel: 'Taal',
     tabsLabel: 'Rekenhulpen',
     tabMwst: 'Btw', tabTip: 'Fooi', tabSprit: 'Brandstof', tabDivi: 'Dividend', tabTrade: 'Trade',
@@ -2049,6 +2144,11 @@ var I18N = {
     _name: 'Polski',
     tagline: 'Pięć małych kalkulatorów, które niczego od ciebie nie chcą.',
     themeLabel: 'Wygląd', themeSystem: 'Systemowy', themeLight: 'Jasny', themeDark: 'Ciemny',
+    themeHcDark: 'Wysoki kontrast, ciemny',
+    themeHcLight: 'Wysoki kontrast, jasny',
+    themeCvdDark: 'Dla daltonistów, ciemny',
+    themeCvdLight: 'Dla daltonistów, jasny',
+    themeInvert: 'Odwrócone kolory',
     langLabel: 'Język',
     tabsLabel: 'Kalkulatory',
     tabMwst: 'VAT', tabTip: 'Napiwek', tabSprit: 'Paliwo', tabDivi: 'Dywidendy', tabTrade: 'Transakcje',
@@ -2209,6 +2309,11 @@ var I18N = {
     _name: 'Português',
     tagline: 'Cinco pequenas calculadoras que não querem nada de você.',
     themeLabel: 'Aparência', themeSystem: 'Sistema', themeLight: 'Claro', themeDark: 'Escuro',
+    themeHcDark: 'Alto contraste escuro',
+    themeHcLight: 'Alto contraste claro',
+    themeCvdDark: 'Daltônico escuro',
+    themeCvdLight: 'Daltônico claro',
+    themeInvert: 'Cores invertidas',
     langLabel: 'Idioma',
     tabsLabel: 'Calculadoras',
     tabMwst: 'IVA', tabTip: 'Gorjeta', tabSprit: 'Combustível', tabDivi: 'Dividendos', tabTrade: 'Trading',
@@ -2370,6 +2475,11 @@ var I18N = {
     _name: 'Türkçe',
     tagline: 'Sizden hiçbir şey istemeyen beş küçük hesap makinesi.',
     themeLabel: 'Görünüm', themeSystem: 'Sistem', themeLight: 'Açık', themeDark: 'Koyu',
+    themeHcDark: 'Yüksek karşıtlık koyu',
+    themeHcLight: 'Yüksek karşıtlık açık',
+    themeCvdDark: 'Renk körü koyu',
+    themeCvdLight: 'Renk körü açık',
+    themeInvert: 'Ters renkler',
     langLabel: 'Dil',
     tabsLabel: 'Hesap makineleri',
     tabMwst: 'KDV', tabTip: 'Bahşiş', tabSprit: 'Yakıt', tabDivi: 'Temettü', tabTrade: 'İşlem',
@@ -2530,6 +2640,11 @@ var I18N = {
     _name: 'Русский',
     tagline: 'Пять маленьких калькуляторов, которым от вас ничего не нужно.',
     themeLabel: 'Оформление', themeSystem: 'Системное', themeLight: 'Светлое', themeDark: 'Тёмное',
+    themeHcDark: 'Контрастная тёмная',
+    themeHcLight: 'Контрастная светлая',
+    themeCvdDark: 'Для дальтоников, тёмная',
+    themeCvdLight: 'Для дальтоников, светлая',
+    themeInvert: 'Инверсия цветов',
     langLabel: 'Язык',
     tabsLabel: 'Калькуляторы',
     tabMwst: 'НДС', tabTip: 'Чаевые', tabSprit: 'Топливо', tabDivi: 'Дивиденды', tabTrade: 'Сделка',
@@ -2690,6 +2805,11 @@ var I18N = {
     _name: 'हिन्दी',
     tagline: 'पाँच छोटे कैलकुलेटर, जिन्हें आपसे कुछ नहीं चाहिए।',
     themeLabel: 'रूप', themeSystem: 'सिस्टम', themeLight: 'हल्का', themeDark: 'गहरा',
+    themeHcDark: 'उच्च कंट्रास्ट गहरी',
+    themeHcLight: 'उच्च कंट्रास्ट हल्की',
+    themeCvdDark: 'रंगांधता-अनुकूल गहरी',
+    themeCvdLight: 'रंगांधता-अनुकूल हल्की',
+    themeInvert: 'उलटे रंग',
     langLabel: 'भाषा',
     tabsLabel: 'कैलकुलेटर',
     tabMwst: 'VAT', tabTip: 'टिप', tabSprit: 'ईंधन', tabDivi: 'लाभांश', tabTrade: 'ट्रेड',
@@ -2850,6 +2970,11 @@ var I18N = {
     _name: '简体中文',
     tagline: '五个小计算器，对你别无所求。',
     themeLabel: '外观', themeSystem: '跟随系统', themeLight: '浅色', themeDark: '深色',
+    themeHcDark: '高对比度深色',
+    themeHcLight: '高对比度浅色',
+    themeCvdDark: '色盲友好深色',
+    themeCvdLight: '色盲友好浅色',
+    themeInvert: '反转颜色',
     langLabel: '语言',
     tabsLabel: '计算器',
     tabMwst: '增值税', tabTip: '小费', tabSprit: '油费', tabDivi: '股息', tabTrade: '交易',
@@ -3010,6 +3135,11 @@ var I18N = {
     _name: '日本語',
     tagline: 'あなたに何も求めない、5つの小さな計算機。',
     themeLabel: '表示', themeSystem: 'システム', themeLight: 'ライト', themeDark: 'ダーク',
+    themeHcDark: 'ハイコントラスト（ダーク）',
+    themeHcLight: 'ハイコントラスト（ライト）',
+    themeCvdDark: '色覚サポート（ダーク）',
+    themeCvdLight: '色覚サポート（ライト）',
+    themeInvert: '色反転',
     langLabel: '言語',
     tabsLabel: '計算機',
     tabMwst: '消費税', tabTip: 'チップ', tabSprit: '燃料費', tabDivi: '配当', tabTrade: '取引',
@@ -3170,6 +3300,11 @@ var I18N = {
     _name: '한국어',
     tagline: '당신에게 아무것도 바라지 않는 작은 계산기 다섯 개.',
     themeLabel: '화면 모드', themeSystem: '시스템', themeLight: '라이트', themeDark: '다크',
+    themeHcDark: '고대비 다크',
+    themeHcLight: '고대비 라이트',
+    themeCvdDark: '색각 배려 다크',
+    themeCvdLight: '색각 배려 라이트',
+    themeInvert: '색상 반전',
     langLabel: '언어',
     tabsLabel: '계산기',
     tabMwst: '부가세', tabTip: '팁', tabSprit: '연료비', tabDivi: '배당', tabTrade: '거래',
@@ -3863,19 +3998,54 @@ var I18N = {
   });
 
   /* ---------- Darstellung ---------- */
+  /* Eine Wahl für die ganze Werkstatt (31.10.2026): alle Werkzeuge liegen auf einem Ursprung und
+     lesen werkstatt.darstellung, THEME_KEY gilt nur noch als Rückfall. Werte anderer Werkzeuge,
+     die Pocketsum nicht kennt (Spectroton „soft-dark“), zählen als ihre Familie. */
   var THEME_FARBE = { light: '#F2F3F8', dark: '#0F0F21' };
+  var KONTRAST_FARBE = { light: '#FFFFFF', dark: '#000000' };
+  var GEMEINSAM = 'werkstatt.darstellung';
+  var WAHLEN = ['system', 'light', 'dark', 'hc-dark', 'hc-light', 'cvd-dark', 'cvd-light', 'invert'];
+  function bekannteWahl(v) {
+    if (WAHLEN.indexOf(v) >= 0) return v;
+    if (/dark/.test(v || '')) return 'dark';
+    if (/light/.test(v || '')) return 'light';
+    return 'system';
+  }
+  function gespeicherteWahl() {
+    var v = null;
+    try { v = localStorage.getItem(GEMEINSAM) || localStorage.getItem(THEME_KEY); } catch (e) {}
+    return bekannteWahl(v);
+  }
+  function medien(q) { return !!(window.matchMedia && window.matchMedia(q).matches); }
   function setzeTheme(wahl, speichern) {
-    var d = document.documentElement;
-    if (wahl === 'light' || wahl === 'dark') d.setAttribute('data-theme', wahl);
-    else { d.removeAttribute('data-theme'); wahl = 'system'; }
+    wahl = bekannteWahl(wahl);
+    var d = document.documentElement, theme = null, vision = null;
+    if (wahl === 'light' || wahl === 'dark') theme = wahl;
+    else if (wahl === 'hc-dark' || wahl === 'hc-light') { theme = wahl.slice(3); vision = 'contrast'; }
+    else if (wahl === 'cvd-dark' || wahl === 'cvd-light') { theme = wahl.slice(4); vision = 'cvd'; }
+    else if (wahl === 'invert') vision = 'invert';
+    else if (medien('(prefers-contrast: more)')) { theme = medien('(prefers-color-scheme: dark)') ? 'dark' : 'light'; vision = 'contrast'; }
+    if (theme) d.setAttribute('data-theme', theme); else d.removeAttribute('data-theme');
+    if (vision) d.setAttribute('data-vision', vision); else d.removeAttribute('data-vision');
     $$('meta[name="theme-color"]').forEach(function (m) {
-      var standard = /dark/.test(m.getAttribute('media') || '') ? THEME_FARBE.dark : THEME_FARBE.light;
-      m.setAttribute('content', wahl === 'system' ? standard : THEME_FARBE[wahl]);
+      var eigen = /dark/.test(m.getAttribute('media') || '') ? 'dark' : 'light';
+      var ton = theme || eigen;
+      m.setAttribute('content', vision === 'contrast' ? KONTRAST_FARBE[ton] : THEME_FARBE[ton]);
     });
     $('theme').value = wahl;
-    if (speichern) { try { localStorage.setItem(THEME_KEY, wahl); } catch (e) {} }
+    if (speichern) { try { localStorage.setItem(GEMEINSAM, wahl); } catch (e) {} }
   }
   $('theme').addEventListener('change', function () { setzeTheme($('theme').value, true); });
+  /* „System“ folgt dem Gerät live, auch bei „Kontrast erhöhen“; eine Wahl in einem anderen
+     Werkzeug-Tab oder vor dem Zurückkommen (bfcache) gilt auch hier */
+  ['(prefers-color-scheme: dark)', '(prefers-contrast: more)'].forEach(function (q) {
+    if (!window.matchMedia) return;
+    var liste = window.matchMedia(q);
+    var folgen = function () { if ($('theme').value === 'system') setzeTheme('system', false); };
+    if (liste.addEventListener) liste.addEventListener('change', folgen); else if (liste.addListener) liste.addListener(folgen);
+  });
+  window.addEventListener('storage', function (e) { if (e.key === GEMEINSAM) setzeTheme(gespeicherteWahl(), false); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) setzeTheme(gespeicherteWahl(), false); });
 
   /* ---------- Sprachwahl ---------- */
   function baueSprachwahl() {
@@ -3895,9 +4065,7 @@ var I18N = {
   }
 
   /* ---------- Start ---------- */
-  var gespeichertesTheme = null;
-  try { gespeichertesTheme = localStorage.getItem(THEME_KEY); } catch (e) {}
-  setzeTheme(gespeichertesTheme, false);
+  setzeTheme(gespeicherteWahl(), false);
   baueSprachwahl();
   setzeSprache(erkenneSprache());
   /* Die Standardwerte im HTML sind deutsch geschrieben. */
