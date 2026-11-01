@@ -714,7 +714,7 @@ main input, main button, main label { scroll-margin-top: 84px; }
 
 <!-- ===================== Dividende ===================== -->
 <section class="rechner" id="r-divi" role="tabpanel" aria-labelledby="tab-divi" data-tab="divi" hidden>
-  <h2><span data-i18n="diviTitle">Dividende</span> <small data-i18n="diviSub">Brutto, Steuer und Netto – pro Jahr, pro Ausschüttung, pro Monat</small></h2>
+  <h2><span data-i18n="diviTitle">Dividende</span> <small data-i18n="diviSub">Brutto, Steuer und Netto pro Jahr, pro Ausschüttung und pro Monat</small></h2>
   <div class="karte">
     <fieldset class="feld">
       <legend data-i18n="diviStart">Ausgangspunkt</legend>
@@ -847,7 +847,7 @@ main input, main button, main label { scroll-margin-top: 84px; }
   <div class="karte">
     <h3 data-i18n="feeModel">Gebührenmodell</h3>
     <div class="feld">
-      <span class="label" id="trade-presets-label" data-i18n="presetsLabel">Beispielwerte zum Start – trag die Preisliste deines Anbieters ein</span>
+      <span class="label" id="trade-presets-label" data-i18n="presetsLabel">Beispielwerte zum Start, trag die Preisliste deines Anbieters ein</span>
       <div class="chips" id="trade-presets" role="group" aria-labelledby="trade-presets-label">
         <button type="button" class="chip" data-preset="krypto-sofort" aria-pressed="true" data-i18n="presetCryptoInstant">Krypto-Börse, Sofortkauf</button>
         <button type="button" class="chip" data-preset="krypto-order" aria-pressed="false" data-i18n="presetCryptoOrder">Krypto-Börse, Orderbuch</button>
@@ -901,7 +901,7 @@ main input, main button, main label { scroll-margin-top: 84px; }
   <p data-i18n="footAdvice">Keine Steuer- oder Anlageberatung. Die Gebühren-Beispiele sind Platzhalter, keine Preislisten.</p>
   <p id="offline-zeile"><span data-i18n="footOffline">Nach dem ersten Besuch läuft Pocketsum auch ohne Netz.</span> <a id="download" href="./index.html" download="pocketsum.html" data-i18n="footDownload">Als eine Datei herunterladen</a></p>
   <p><a href="https://dennismit2n.github.io/" data-i18n="footWerkstatt">Eine Werkstatt von Dennis_mit_2n</a> <span class="sep" aria-hidden="true">·</span> <a href="https://github.com/Dennismit2n/pocketsum" data-i18n="footSource">Quelltext auf GitHub</a></p>
-  <p data-i18n="footTranslations">Übersetzungen teils maschinell – Korrekturen sind willkommen.</p>
+  <p data-i18n="footTranslations">Übersetzungen teils maschinell, Korrekturen nehme ich gern an.</p>
   <p><span id="version">Version 1.1</span> <span class="sep" aria-hidden="true">·</span> © 2026 Dennis_mit_2n</p>
 </footer>
 
@@ -1219,7 +1219,7 @@ var I18N = {
     spritTableHint: 'Die markierte Zeile ist der aktuelle Preis, die umrandete der neue. „Füllung“ ist eine volle Tankfüllung, „± Monat“ der Unterschied zum aktuellen Preis bei deiner Fahrleistung.',
 
     diviTitle: 'Dividende',
-    diviSub: 'Brutto, Steuer und Netto – pro Jahr, pro Ausschüttung, pro Monat',
+    diviSub: 'Brutto, Steuer und Netto pro Jahr, pro Ausschüttung und pro Monat',
     diviStart: 'Ausgangspunkt',
     diviHave: 'Ich habe Aktien',
     diviInvest: 'Ich lege einen Betrag an',
@@ -1275,7 +1275,7 @@ var I18N = {
     tradePrice: 'Kurs (optional)',
     tradePricePh: 'z. B. {v} für 1 BTC',
     feeModel: 'Gebührenmodell',
-    presetsLabel: 'Beispielwerte zum Start – trag die Preisliste deines Anbieters ein',
+    presetsLabel: 'Beispielwerte zum Start, trag die Preisliste deines Anbieters ein',
     presetCryptoInstant: 'Krypto-Börse, Sofortkauf',
     presetCryptoOrder: 'Krypto-Börse, Orderbuch',
     presetNeo: 'Neobroker, {v} fest',
@@ -1310,7 +1310,7 @@ var I18N = {
     installDone: 'Pocketsum ist installiert.',
     footWerkstatt: 'Eine Werkstatt von Dennis_mit_2n',
     footSource: 'Quelltext auf GitHub',
-    footTranslations: 'Übersetzungen teils maschinell – Korrekturen sind willkommen.',
+    footTranslations: 'Übersetzungen teils maschinell, Korrekturen nehme ich gern an.',
     version: 'Version {v} · {d}'
   },
 
@@ -1334,7 +1334,7 @@ var I18N = {
     unitKmMonth: 'km/month', unitPcs: 'pcs', unitEurYear: '€/year', unitEurMonth: '€/month',
 
     mwstTitle: 'Value added tax (VAT)',
-    mwstSub: 'Net, tax and gross – in both directions',
+    mwstSub: 'Net, tax and gross in both directions',
     mwstIs: 'The amount is',
     mwstNet: 'net, before VAT',
     mwstGross: 'gross, including VAT',
@@ -1384,7 +1384,7 @@ var I18N = {
     spritTableHint: 'The highlighted row is the current price, the outlined one the new price. “Full tank” means filling the whole tank, “± month” is the difference from the current price for the distance you drive.',
 
     diviTitle: 'Dividends',
-    diviSub: 'Gross, tax and net – per year, per payout, per month',
+    diviSub: 'Gross, tax and net per year, per payout and per month',
     diviStart: 'Starting point',
     diviHave: 'I own shares',
     diviInvest: 'I’m investing an amount',
@@ -1414,7 +1414,7 @@ var I18N = {
     diviUsed: 'Already used this year',
     diviWht: 'Foreign withholding tax',
     diviWhtPh: 'US: 15',
-    diviTaxHint: 'Simplified: 25% flat tax on investment income plus a 5.5% solidarity surcharge on top; with church tax, the formula from § 32d EStG applies, and for funds the partial exemption under § 20 InvStG comes first. Foreign withholding tax is credited up to 15% (the usual tax-treaty rate). Anything a country withholds beyond that – Switzerland takes 35%, for example – you can reclaim there; Pocketsum does not calculate that. Not tax advice.',
+    diviTaxHint: 'Simplified: 25% flat tax on investment income plus a 5.5% solidarity surcharge on top; with church tax, the formula from § 32d EStG applies, and for funds the partial exemption under § 20 InvStG comes first. Foreign withholding tax is credited up to 15% (the usual tax-treaty rate). Anything a country withholds beyond that (Switzerland takes 35%, for example) you can reclaim there; Pocketsum does not calculate that. Not tax advice.',
     resNetYear: 'Net per year', resNetMonth: 'Net per month', resGrossYear: 'Gross per year',
     resTaxes: 'Taxes', resCapital: 'Capital',
     netYield: '{v} net yield on capital',
@@ -1440,7 +1440,7 @@ var I18N = {
     tradePrice: 'Price (optional)',
     tradePricePh: 'e.g. {v} for 1 BTC',
     feeModel: 'Fee model',
-    presetsLabel: 'Sample values to start with – enter your provider’s price list',
+    presetsLabel: 'Sample values to start with, enter your provider’s price list',
     presetCryptoInstant: 'Crypto exchange, instant buy',
     presetCryptoOrder: 'Crypto exchange, order book',
     presetNeo: 'Neobroker, {v} flat',
@@ -1475,7 +1475,7 @@ var I18N = {
     installDone: 'Pocketsum is installed.',
     footWerkstatt: 'A workshop by Dennis_mit_2n',
     footSource: 'Source code on GitHub',
-    footTranslations: 'Translations are partly machine-made – corrections are welcome.',
+    footTranslations: 'Some translations are machine-made, and I’m happy to take corrections.',
     version: 'Version {v} · {d}'
   }
 ,
@@ -1641,7 +1641,7 @@ var I18N = {
     installDone: 'Pocketsum está instalado.',
     footWerkstatt: 'Un taller de Dennis_mit_2n',
     footSource: 'Código fuente en GitHub',
-    footTranslations: 'Traducciones en parte automáticas: las correcciones son bienvenidas.',
+    footTranslations: 'Algunas traducciones son automáticas. Acepto correcciones con gusto.',
     version: 'Versión {v} · {d}'
   },
 
@@ -1715,7 +1715,7 @@ var I18N = {
     spritTableHint: 'La ligne surlignée est le prix actuel, la ligne encadrée le nouveau. « Plein » signifie un réservoir rempli entièrement, « ± mois » l’écart avec le prix actuel selon votre kilométrage.',
 
     diviTitle: 'Dividendes',
-    diviSub: 'Brut, impôts et net – par an, par versement, par mois',
+    diviSub: 'Brut, impôts et net par an, par versement et par mois',
     diviStart: 'Point de départ',
     diviHave: 'J’ai des actions',
     diviInvest: 'J’investis un montant',
@@ -1771,7 +1771,7 @@ var I18N = {
     tradePrice: 'Cours (facultatif)',
     tradePricePh: 'p. ex. {v} pour 1 BTC',
     feeModel: 'Modèle de frais',
-    presetsLabel: 'Valeurs d’exemple pour commencer – saisissez la grille tarifaire de votre fournisseur',
+    presetsLabel: 'Valeurs d’exemple pour commencer, saisissez la grille tarifaire de votre fournisseur',
     presetCryptoInstant: 'Plateforme crypto, achat immédiat',
     presetCryptoOrder: 'Plateforme crypto, carnet d’ordres',
     presetNeo: 'Néocourtier, {v} fixe',
@@ -1806,7 +1806,7 @@ var I18N = {
     installDone: 'Pocketsum est installé.',
     footWerkstatt: 'Un atelier de Dennis_mit_2n',
     footSource: 'Code source sur GitHub',
-    footTranslations: 'Traductions en partie automatiques – les corrections sont les bienvenues.',
+    footTranslations: 'Certaines traductions sont automatiques, j’accepte volontiers les corrections.',
     version: 'Version {v} · {d}'
   },
 
@@ -1880,7 +1880,7 @@ var I18N = {
     spritTableHint: 'La riga evidenziata è il prezzo attuale, quella riquadrata il nuovo. «Pieno» è un serbatoio riempito del tutto, «± mese» la differenza rispetto al prezzo attuale con i tuoi chilometri.',
 
     diviTitle: 'Dividendi',
-    diviSub: 'Lordo, tasse e netto – all’anno, per stacco, al mese',
+    diviSub: 'Lordo, tasse e netto all’anno, per stacco e al mese',
     diviStart: 'Punto di partenza',
     diviHave: 'Ho delle azioni',
     diviInvest: 'Investo un importo',
@@ -1936,7 +1936,7 @@ var I18N = {
     tradePrice: 'Prezzo (facoltativo)',
     tradePricePh: 'es. {v} per 1 BTC',
     feeModel: 'Modello di commissioni',
-    presetsLabel: 'Valori di esempio per iniziare – inserisci il listino del tuo fornitore',
+    presetsLabel: 'Valori di esempio per iniziare, inserisci il listino del tuo fornitore',
     presetCryptoInstant: 'Exchange cripto, acquisto immediato',
     presetCryptoOrder: 'Exchange cripto, book di negoziazione',
     presetNeo: 'Neobroker, {v} fisso',
@@ -1971,7 +1971,7 @@ var I18N = {
     installDone: 'Pocketsum è installato.',
     footWerkstatt: 'Un’officina di Dennis_mit_2n',
     footSource: 'Codice sorgente su GitHub',
-    footTranslations: 'Traduzioni in parte automatiche – le correzioni sono benvenute.',
+    footTranslations: 'Alcune traduzioni sono automatiche, accetto volentieri correzioni.',
     version: 'Versione {v} · {d}'
   },
 
@@ -2045,7 +2045,7 @@ var I18N = {
     spritTableHint: 'De gemarkeerde rij is de huidige prijs, de omkaderde de nieuwe. ‘Volle tank’ is een helemaal gevulde tank, ‘± maand’ het verschil met de huidige prijs bij jouw kilometers.',
 
     diviTitle: 'Dividend',
-    diviSub: 'Bruto, belasting en netto – per jaar, per uitkering, per maand',
+    diviSub: 'Bruto, belasting en netto per jaar, per uitkering en per maand',
     diviStart: 'Uitgangspunt',
     diviHave: 'Ik heb aandelen',
     diviInvest: 'Ik beleg een bedrag',
@@ -2101,7 +2101,7 @@ var I18N = {
     tradePrice: 'Koers (optioneel)',
     tradePricePh: 'bijv. {v} voor 1 BTC',
     feeModel: 'Kostenmodel',
-    presetsLabel: 'Voorbeeldwaarden om mee te beginnen – vul de prijslijst van je aanbieder in',
+    presetsLabel: 'Voorbeeldwaarden om mee te beginnen, vul de prijslijst van je aanbieder in',
     presetCryptoInstant: 'Cryptobeurs, direct kopen',
     presetCryptoOrder: 'Cryptobeurs, orderboek',
     presetNeo: 'Neobroker, {v} vast',
@@ -2136,7 +2136,7 @@ var I18N = {
     installDone: 'Pocketsum is geïnstalleerd.',
     footWerkstatt: 'Een werkplaats van Dennis_mit_2n',
     footSource: 'Broncode op GitHub',
-    footTranslations: 'Vertalingen deels automatisch – correcties zijn welkom.',
+    footTranslations: 'Sommige vertalingen zijn machinaal gemaakt, correcties neem ik graag aan.',
     version: 'Versie {v} · {d}'
   },
 
@@ -2207,10 +2207,10 @@ var I18N = {
     spritTableTitle: 'Tabela cen wokół obecnej ceny',
     spritStep: 'Krok',
     thDiffMonth: '± miesiąc',
-    spritTableHint: 'Wyróżniony wiersz to obecna cena, obramowany – nowa. „Pełny bak” to całkowicie zatankowany bak, „± miesiąc” to różnica względem obecnej ceny przy twoim przebiegu.',
+    spritTableHint: 'Wyróżniony wiersz to obecna cena, obramowany to nowa. „Pełny bak” to całkowicie zatankowany bak, „± miesiąc” to różnica względem obecnej ceny przy twoim przebiegu.',
 
     diviTitle: 'Dywidendy',
-    diviSub: 'Brutto, podatek i netto – rocznie, na wypłatę, miesięcznie',
+    diviSub: 'Brutto, podatek i netto rocznie, na wypłatę i miesięcznie',
     diviStart: 'Punkt wyjścia',
     diviHave: 'Mam akcje',
     diviInvest: 'Inwestuję kwotę',
@@ -2266,7 +2266,7 @@ var I18N = {
     tradePrice: 'Kurs (opcjonalnie)',
     tradePricePh: 'np. {v} za 1 BTC',
     feeModel: 'Model opłat',
-    presetsLabel: 'Przykładowe wartości na start – wpisz cennik swojego dostawcy',
+    presetsLabel: 'Przykładowe wartości na start, wpisz cennik swojego dostawcy',
     presetCryptoInstant: 'Giełda kryptowalut, zakup natychmiastowy',
     presetCryptoOrder: 'Giełda kryptowalut, arkusz zleceń',
     presetNeo: 'Neobroker, {v} stała',
@@ -2301,7 +2301,7 @@ var I18N = {
     installDone: 'Pocketsum jest zainstalowany.',
     footWerkstatt: 'Warsztat Dennis_mit_2n',
     footSource: 'Kod źródłowy na GitHubie',
-    footTranslations: 'Tłumaczenia częściowo maszynowe – poprawki mile widziane.',
+    footTranslations: 'Część tłumaczeń powstała maszynowo, chętnie przyjmę poprawki.',
     version: 'Wersja {v} · {d}'
   },
 
@@ -2466,7 +2466,7 @@ var I18N = {
     installDone: 'O Pocketsum está instalado.',
     footWerkstatt: 'Uma oficina de Dennis_mit_2n',
     footSource: 'Código-fonte no GitHub',
-    footTranslations: 'Traduções em parte automáticas. Correções são bem-vindas.',
+    footTranslations: 'Algumas traduções são automáticas, aceito correções com prazer.',
     version: 'Versão {v} · {d}'
   }
 ,
@@ -2491,7 +2491,7 @@ var I18N = {
     unitKmMonth: 'km/ay', unitPcs: 'adet', unitEurYear: '€/yıl', unitEurMonth: '€/ay',
 
     mwstTitle: 'Katma değer vergisi (KDV)',
-    mwstSub: 'Net, vergi ve brüt – iki yönde de',
+    mwstSub: 'Net, vergi ve brüt iki yönde de',
     mwstIs: 'Girilen tutar',
     mwstNet: 'net, KDV hariç',
     mwstGross: 'brüt, KDV dahil',
@@ -2541,7 +2541,7 @@ var I18N = {
     spritTableHint: 'Vurgulanan satır şimdiki fiyat, çerçeveli satır yeni fiyattır. “Dolu depo” deponun tamamen doldurulması, “± ay” ise aylık mesafenize göre şimdiki fiyata olan farktır.',
 
     diviTitle: 'Temettü',
-    diviSub: 'Brüt, vergi ve net – yıllık, ödeme başına, aylık',
+    diviSub: 'Yıllık, ödeme başına ve aylık brüt, vergi ve net',
     diviStart: 'Başlangıç noktası',
     diviHave: 'Hisselerim var',
     diviInvest: 'Bir tutar yatırıyorum',
@@ -2597,7 +2597,7 @@ var I18N = {
     tradePrice: 'Fiyat (isteğe bağlı)',
     tradePricePh: 'örn. 1 BTC için {v}',
     feeModel: 'Ücret modeli',
-    presetsLabel: 'Başlamak için örnek değerler – sağlayıcınızın fiyat listesini girin',
+    presetsLabel: 'Başlamak için örnek değerler, sağlayıcınızın fiyat listesini girin',
     presetCryptoInstant: 'Kripto borsası, anında alım',
     presetCryptoOrder: 'Kripto borsası, emir defteri',
     presetNeo: 'Neobroker, {v} sabit',
@@ -2632,7 +2632,7 @@ var I18N = {
     installDone: 'Pocketsum yüklendi.',
     footWerkstatt: 'Dennis_mit_2n’nin bir atölyesi',
     footSource: 'GitHub’da kaynak kodu',
-    footTranslations: 'Çeviriler kısmen makine çevirisidir – düzeltmeler memnuniyetle karşılanır.',
+    footTranslations: 'Bazı çeviriler otomatik oluşturuldu, düzeltmeleri memnuniyetle alırım.',
     version: 'Sürüm {v} · {d}'
   },
 
@@ -2663,10 +2663,10 @@ var I18N = {
     mwstRate: 'Ставка',
     mwstCustom: 'своя',
     mwstCustomAria: 'Своя ставка налога в процентах',
-    mwstRateHint: '19 % и 7 % — ставки Германии. Для других стран введите свою ставку в поле «своя».',
+    mwstRateHint: 'В Германии действуют ставки 19 % и 7 %. Для других стран введите свою ставку в поле «своя».',
     resNet: 'Нетто', resTax: 'НДС', resGross: 'Брутто',
-    mwstWayNet: 'Расчёт: нетто × {f} = брутто. Налог — это разница.',
-    mwstWayGross: 'Расчёт: брутто ÷ {f} = нетто. Налог — это разница.',
+    mwstWayNet: 'Расчёт: нетто × {f} = брутто. Налог равен разнице.',
+    mwstWayGross: 'Расчёт: брутто ÷ {f} = нетто. Налог равен разнице.',
 
     tipTitle: 'Чаевые',
     tipSub: 'С округлением и делением на несколько человек',
@@ -2703,10 +2703,10 @@ var I18N = {
     spritTableTitle: 'Таблица цен вокруг текущей цены',
     spritStep: 'Шаг',
     thDiffMonth: '± месяц',
-    spritTableHint: 'Выделенная строка — текущая цена, строка в рамке — новая. «Полный бак» — это бак, заправленный до конца, «± месяц» — разница с текущей ценой при вашем пробеге.',
+    spritTableHint: 'Выделенная строка показывает текущую цену, строка в рамке новую. «Полный бак» означает бак, заправленный до конца, «± месяц» показывает разницу с текущей ценой при вашем пробеге.',
 
     diviTitle: 'Дивиденды',
-    diviSub: 'Брутто, налог и нетто — за год, за выплату, за месяц',
+    diviSub: 'Брутто, налог и нетто за год, за выплату и за месяц',
     diviStart: 'Исходные данные',
     diviHave: 'У меня есть акции',
     diviInvest: 'Я вкладываю сумму',
@@ -2762,7 +2762,7 @@ var I18N = {
     tradePrice: 'Цена (необязательно)',
     tradePricePh: 'напр. {v} за 1 BTC',
     feeModel: 'Модель комиссий',
-    presetsLabel: 'Примерные значения для начала — введите тарифы своего провайдера',
+    presetsLabel: 'Примерные значения для начала, введите тарифы своего провайдера',
     presetCryptoInstant: 'Криптобиржа, мгновенная покупка',
     presetCryptoOrder: 'Криптобиржа, книга заявок',
     presetNeo: 'Необрокер, {v} фикс.',
@@ -2790,14 +2790,14 @@ var I18N = {
     sellNow: 'Если сразу продать: {v}',
 
     footPrivacy: 'Считает только на вашем устройстве. Введённое остаётся в вашем браузере и никуда не отправляется; Pocketsum не считает посещения.',
-    footAdvice: 'Это не налоговая и не инвестиционная консультация. Примеры комиссий — лишь условные значения, а не тарифы.',
+    footAdvice: 'Это не налоговая и не инвестиционная консультация. Примеры комиссий служат лишь условными значениями, а не тарифами.',
     footOffline: 'После первого посещения Pocketsum работает и без интернета.',
     footDownload: 'Скачать одним файлом',
     installBtn: 'Установить',
     installDone: 'Pocketsum установлен.',
     footWerkstatt: 'Мастерская Dennis_mit_2n',
     footSource: 'Исходный код на GitHub',
-    footTranslations: 'Переводы частично машинные — исправления приветствуются.',
+    footTranslations: 'Часть переводов сделана автоматически, исправления приму с радостью.',
     version: 'Версия {v} · {d}'
   },
 
@@ -2821,7 +2821,7 @@ var I18N = {
     unitKmMonth: 'किमी/माह', unitPcs: 'शेयर', unitEurYear: '€/वर्ष', unitEurMonth: '€/माह',
 
     mwstTitle: 'मूल्य वर्धित कर (VAT)',
-    mwstSub: 'नेट, कर और ग्रॉस – दोनों दिशाओं में',
+    mwstSub: 'नेट, कर और ग्रॉस दोनों दिशाओं में',
     mwstIs: 'राशि है',
     mwstNet: 'नेट, VAT के बिना',
     mwstGross: 'ग्रॉस, VAT सहित',
@@ -2871,7 +2871,7 @@ var I18N = {
     spritTableHint: 'हाइलाइट की गई पंक्ति अभी की कीमत है, फ्रेम वाली पंक्ति नई कीमत। “पूरी टंकी” का मतलब है टंकी पूरी भरना, “± माह” आपकी दूरी पर अभी की कीमत से अंतर है।',
 
     diviTitle: 'लाभांश',
-    diviSub: 'ग्रॉस, कर और नेट – प्रति वर्ष, प्रति भुगतान, प्रति माह',
+    diviSub: 'प्रति वर्ष, प्रति भुगतान और प्रति माह ग्रॉस, कर और नेट',
     diviStart: 'शुरुआत',
     diviHave: 'मेरे पास शेयर हैं',
     diviInvest: 'एक राशि निवेश करनी है',
@@ -2927,7 +2927,7 @@ var I18N = {
     tradePrice: 'भाव (वैकल्पिक)',
     tradePricePh: 'जैसे 1 BTC के लिए {v}',
     feeModel: 'शुल्क मॉडल',
-    presetsLabel: 'शुरुआत के लिए उदाहरण मान – अपने प्रदाता की रेट लिस्ट भरें',
+    presetsLabel: 'शुरुआत के लिए उदाहरण मान, अपने प्रदाता की रेट लिस्ट भरें',
     presetCryptoInstant: 'क्रिप्टो एक्सचेंज, तुरंत ख़रीद',
     presetCryptoOrder: 'क्रिप्टो एक्सचेंज, ऑर्डर बुक',
     presetNeo: 'नियो-ब्रोकर, तय शुल्क {v}',
@@ -2962,7 +2962,7 @@ var I18N = {
     installDone: 'Pocketsum इंस्टॉल हो गया।',
     footWerkstatt: 'Dennis_mit_2n की एक वर्कशॉप',
     footSource: 'GitHub पर सोर्स कोड',
-    footTranslations: 'अनुवाद आंशिक रूप से मशीन से हैं – सुधार का स्वागत है।',
+    footTranslations: 'कुछ अनुवाद मशीन से किए गए हैं, सुधार मैं खुशी से लेता हूँ।',
     version: 'संस्करण {v} · {d}'
   },
 
@@ -3036,7 +3036,7 @@ var I18N = {
     spritTableHint: '高亮的一行是现价，带框的一行是新价。“加满一箱”指把油箱加满，“± 月”是按你的里程与现价相比的差额。',
 
     diviTitle: '股息',
-    diviSub: '税前、税款和税后——每年、每次派息、每月',
+    diviSub: '每年、每次派息和每月的税前、税款和税后',
     diviStart: '起点',
     diviHave: '我持有股票',
     diviInvest: '我要投入一笔钱',
@@ -3092,7 +3092,7 @@ var I18N = {
     tradePrice: '价格（可选）',
     tradePricePh: '例如 1 BTC {v}',
     feeModel: '收费模式',
-    presetsLabel: '先用示例值开始——再填入你的服务商价目表',
+    presetsLabel: '先用示例值开始，再填入你的服务商价目表',
     presetCryptoInstant: '加密货币交易所，即时购买',
     presetCryptoOrder: '加密货币交易所，订单簿',
     presetNeo: '新型券商，固定 {v}',
@@ -3127,7 +3127,7 @@ var I18N = {
     installDone: 'Pocketsum 已安装。',
     footWerkstatt: 'Dennis_mit_2n 的工作坊',
     footSource: 'GitHub 上的源代码',
-    footTranslations: '部分翻译由机器完成——欢迎指正。',
+    footTranslations: '部分翻译由机器生成，我很乐意接受指正。',
     version: '版本 {v} · {d}'
   },
 
@@ -3292,7 +3292,7 @@ var I18N = {
     installDone: 'Pocketsum をインストールしました。',
     footWerkstatt: 'Dennis_mit_2n の工房',
     footSource: 'GitHub のソースコード',
-    footTranslations: '翻訳の一部は機械翻訳です。修正を歓迎します。',
+    footTranslations: '一部の翻訳は機械翻訳です。修正はいつでも歓迎します。',
     version: 'バージョン {v} · {d}'
   },
 
@@ -3366,7 +3366,7 @@ var I18N = {
     spritTableHint: '강조된 행이 현재 가격, 테두리가 있는 행이 새 가격입니다. ‘가득 주유’는 탱크를 가득 채운 경우이고, ‘± 월’은 주행 거리 기준으로 현재 가격과의 차이입니다.',
 
     diviTitle: '배당',
-    diviSub: '세전, 세금, 세후 — 연간, 지급마다, 월간',
+    diviSub: '연간, 지급마다, 월간 세전·세금·세후',
     diviStart: '시작점',
     diviHave: '주식을 가지고 있음',
     diviInvest: '금액을 투자함',
@@ -3422,7 +3422,7 @@ var I18N = {
     tradePrice: '가격 (선택)',
     tradePricePh: '예: 1 BTC에 {v}',
     feeModel: '수수료 모델',
-    presetsLabel: '시작용 예시 값 — 이용하는 곳의 요금표를 넣으세요',
+    presetsLabel: '시작용 예시 값, 이용하는 곳의 요금표를 넣으세요',
     presetCryptoInstant: '암호화폐 거래소, 즉시 구매',
     presetCryptoOrder: '암호화폐 거래소, 호가창',
     presetNeo: '네오 브로커, 정액 {v}',
@@ -3457,7 +3457,7 @@ var I18N = {
     installDone: 'Pocketsum이 설치되었습니다.',
     footWerkstatt: 'Dennis_mit_2n의 공방',
     footSource: 'GitHub의 소스 코드',
-    footTranslations: '번역의 일부는 기계 번역입니다. 수정 제안을 환영합니다.',
+    footTranslations: '일부 번역은 기계 번역이에요. 수정 제안은 기꺼이 받아요.',
     version: '버전 {v} · {d}'
   }
 };
@@ -3625,7 +3625,7 @@ var I18N = {
     if (sel) sel.value = lang;
     setzeTitel();
   }
-  function setzeTitel() { document.title = 'Pocketsum – ' + t(TITEL[aktiverTab]); }
+  function setzeTitel() { document.title = 'Pocketsum · ' + t(TITEL[aktiverTab]); }
 
   /* ---------- Toast ---------- */
   var toastTimer;
