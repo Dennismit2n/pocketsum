@@ -6,7 +6,7 @@
 'use strict';
 
 // Bei jedem Deploy, der index.html oder eine der Dateien unten ändert, um 1 erhöhen.
-const CACHE = 'pocketsum-v5';
+const CACHE = 'pocketsum-v6';
 
 // Genau die Dateien, die index.html und das Manifest laden. Eine Datei, die es nicht gibt,
 // ließe addAll und damit die ganze Installation scheitern.
