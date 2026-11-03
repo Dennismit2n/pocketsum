@@ -3,6 +3,10 @@
 //   icon-maskable.png            – für Android: Motiv im sicheren Kreis, Fläche bis zum Rand
 //   og.png                       – Link-Vorschau 1200 × 630 im dunklen Familien-Entwurf der Werkstatt
 //
+// Achtung: og.png, instagram.png und github-social.png kommen seit 03.11.2026 aus der gemeinsamen
+// Vorlage im Startseiten-Repo (tools/promo/make-bilder.mjs, Design vom 02.11.2026). Dieser Lauf
+// überschreibt og.png mit dem alten Entwurf. Danach also zurückholen: git checkout -- og.png
+//
 //   node tools/bilder.mjs
 //
 // Playwright kommt aus dem Nachbar-Repo collective-calc (wird nicht installiert).
