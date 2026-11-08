@@ -1,8 +1,8 @@
 # Pocketsum
 
-**Fünf kleine Rechner, die nichts von dir wollen.** Mehrwertsteuer, Trinkgeld, Spritpreis, Dividende und Trade-Kosten – in einer einzigen Datei, die im Browser läuft, nach dem ersten Besuch auch ohne Netz funktioniert und deine Eingaben nirgendwohin schickt.
+**Fünf kleine Rechner, die nichts von dir wollen.** Mehrwertsteuer, Trinkgeld, Spritpreis, Dividende und Trade-Kosten in einer einzigen Datei, die im Browser läuft, nach dem ersten Besuch auch ohne Netz funktioniert und deine Eingaben nirgendwohin schickt.
 
-![Sprachen](https://img.shields.io/badge/Sprachen-14-A5A5FF) ![Offline](https://img.shields.io/badge/Offline-nach%20dem%20ersten%20Besuch-7EE0A0) ![Zählung](https://img.shields.io/badge/Besuchszählung-keine-FF9FB5)
+![Sprachen](https://img.shields.io/badge/Sprachen-14-A5A5FF) ![Offline](https://img.shields.io/badge/Offline-nach%20dem%20ersten%20Besuch-7EE0A0) ![Zählung](https://img.shields.io/badge/Besuchsz%C3%A4hlung-keine-FF9FB5)
 
 **Live:** https://dennismit2n.github.io/pocketsum/ · [English version](README.md)
 
@@ -13,10 +13,10 @@
 | | |
 |---|---|
 | **Mehrwertsteuer** | Netto zu brutto und brutto zu netto, mit 19 %, 7 %, 0 % oder eigenem Satz. Zeigt den Rechenweg. |
-| **Trinkgeld** | Prozent oder eigener Satz, rundet den Gesamtbetrag auf 50 Cent, volle Euro oder 5 Euro auf, teilt auf mehrere Personen auf – und sagt dir, was du sagen kannst: „Mach 50,00 €.“ |
+| **Trinkgeld** | Prozent oder eigener Satz, rundet den Gesamtbetrag auf 50 Cent, volle Euro oder 5 Euro auf, teilt auf mehrere Personen auf und sagt dir, was du sagen kannst: „Mach 50,00 €.“ |
 | **Spritpreis** | Was ein Preisanstieg pro Tankfüllung, pro 100 km, pro Monat und pro Jahr kostet, nach deinem Tank, Verbrauch und deiner Fahrleistung. Dazu eine Preistabelle rund um den aktuellen Preis in 1-, 5- oder 10-Cent-Schritten. |
 | **Dividende** | Brutto, Steuer und Netto pro Jahr, pro Ausschüttung und pro Monat, aus Stückzahl oder Anlagebetrag. Deutsches Steuerrecht: 25 % Abgeltungsteuer, Soli, Kirchensteuer (§ 32d EStG), Sparer-Pauschbetrag, Anrechnung ausländischer Quellensteuer bis 15 % und die Teilfreistellung für Aktien- und Mischfonds (§ 20 InvStG). Und umgekehrt: wie viele Aktien für ein Wunsch-Netto pro Monat. |
-| **Trade-Kosten** | Was ein Kauf von Aktien, ETF oder Krypto wirklich kostet: Gebühr in Prozent, fest, mindestens und Aufschlag, Gebühren im Betrag enthalten oder obendrauf. Zeigt, was wirklich angelegt ist, wie viele Stück du bekommst, den effektiven Kurs je Stück, um wie viel der Kurs steigen muss, bis du beim Verkauf wieder bei null bist, und die Kosten für Kauf plus Verkauf. Beispiel-Gebührenmodelle zum Start – keine Preislisten echter Anbieter. |
+| **Trade-Kosten** | Was ein Kauf von Aktien, ETF oder Krypto wirklich kostet: Gebühr in Prozent, fest, mindestens und Aufschlag, Gebühren im Betrag enthalten oder obendrauf. Zeigt, was wirklich angelegt ist, wie viele Stück du bekommst, den effektiven Kurs je Stück, um wie viel der Kurs steigen muss, bis du beim Verkauf wieder bei null bist, und die Kosten für Kauf plus Verkauf. Beispiel-Gebührenmodelle zum Start, keine Preislisten echter Anbieter. |
 
 ## Klug mit Zahlen
 
@@ -24,17 +24,17 @@
 
 ## Privatsphäre
 
-- Gerechnet wird auf deinem Gerät. Deine Eingaben bleiben im lokalen Speicher deines Browsers, damit die Felder beim nächsten Mal noch ausgefüllt sind – sonst nichts.
+- Gerechnet wird auf deinem Gerät. Deine Eingaben bleiben im lokalen Speicher deines Browsers, damit die Felder beim nächsten Mal noch ausgefüllt sind. Sonst nichts.
 - Kein Konto, keine Werbung, keine Cookies, keine Besuchszählung.
 - Die Seite trägt eine Content Security Policy mit `connect-src 'none'`: Der Browser selbst blockiert jede Abfrage per fetch, XHR, WebSocket oder Beacon, die die Seite versuchen könnte, und von fremden Seiten wird nichts geladen. Das lässt sich in den Entwicklerwerkzeugen nachprüfen.
 
 ## Offline und als eine Datei
 
-Nach dem ersten Besuch hält ein Service Worker die App ohne Netz bereit; in Chrome, Edge und Samsung Internet erscheint oben der Knopf „Installieren“, der sie als App einrichtet – auf dem Handy wie am PC. Oder du lädst die Seite selbst herunter – „Als eine Datei herunterladen“ unten in der Fußzeile speichert `pocketsum.html`: Sie enthält alles (Gestaltung, Rechnungen, alle 14 Sprachen) und läuft per Doppelklick von deiner Festplatte.
+Nach dem ersten Besuch hält ein Service Worker die App ohne Netz bereit; in Chrome, Edge und Samsung Internet erscheint oben der Knopf „Installieren“, der sie als App einrichtet, auf dem Handy wie am PC. Oder du lädst die Seite selbst herunter: „Als eine Datei herunterladen“ unten in der Fußzeile speichert `pocketsum.html`. Sie enthält alles (Gestaltung, Rechnungen, alle 14 Sprachen) und läuft per Doppelklick von deiner Festplatte.
 
 ## Sprachen
 
-Deutsch, Englisch, Spanisch, Französisch, Italienisch, Niederländisch, Polnisch, Portugiesisch, Türkisch, Russisch, Hindi, Chinesisch, Japanisch und Koreanisch. Die App folgt der Sprache deines Browsers und merkt sich deine Wahl. Teils maschinell übersetzt – Korrekturen sind sehr willkommen.
+Deutsch, Englisch, Spanisch, Französisch, Italienisch, Niederländisch, Polnisch, Portugiesisch, Türkisch, Russisch, Hindi, Chinesisch, Japanisch und Koreanisch. Die App folgt der Sprache deines Browsers und merkt sich deine Wahl. Teils maschinell übersetzt, Korrekturen sind sehr willkommen.
 
 ## Keine Beratung
 

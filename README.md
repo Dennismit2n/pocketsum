@@ -1,6 +1,6 @@
 # Pocketsum
 
-**Five small calculators that want nothing from you.** VAT, tips, fuel prices, dividends and trading costs – in one single file that runs in your browser, works offline after the first visit and never sends what you enter anywhere.
+**Five small calculators that want nothing from you.** VAT, tips, fuel prices, dividends and trading costs in one single file that runs in your browser, works offline after the first visit and never sends what you enter anywhere.
 
 ![Languages](https://img.shields.io/badge/Languages-14-A5A5FF) ![Offline](https://img.shields.io/badge/Offline-after%20first%20visit-7EE0A0) ![Visit counting](https://img.shields.io/badge/Visit%20counting-none-FF9FB5)
 
@@ -13,10 +13,10 @@
 | | |
 |---|---|
 | **VAT** | Net to gross and gross to net, with 19%, 7%, 0% or your own rate. Shows how it is calculated. |
-| **Tip** | Percentage or your own rate, rounds the total up to 50 cents, whole euros or 5 euros, splits the bill between several people – and tells you what to say: “Make it €50.00.” |
+| **Tip** | Percentage or your own rate, rounds the total up to 50 cents, whole euros or 5 euros, splits the bill between several people and tells you what to say: “Make it €50.00.” |
 | **Fuel** | What a price rise costs per full tank, per 100 km, per month and per year, based on your tank, consumption and mileage. Plus a price table around the current price in 1, 5 or 10 cent steps. |
 | **Dividends** | Gross, tax and net per year, per payout and per month, from a number of shares or an amount invested. German tax law: 25% flat tax, solidarity surcharge, church tax (§ 32d EStG), saver’s allowance, credit for foreign withholding tax up to 15%, and the partial exemption for equity and mixed funds (§ 20 InvStG). And the other way round: how many shares for a desired net income per month. |
-| **Trading costs** | What buying shares, ETFs or crypto really costs: percentage fee, fixed fee, minimum fee and markup, fees included in the amount or on top. Shows what is actually invested, how many units you get, the effective price per unit, how far the price has to rise before selling gets you back to zero, and the cost of buying plus selling. Sample fee models to start from – not price lists of real providers. |
+| **Trading costs** | What buying shares, ETFs or crypto really costs: percentage fee, fixed fee, minimum fee and markup, fees included in the amount or on top. Shows what is actually invested, how many units you get, the effective price per unit, how far the price has to rise before selling gets you back to zero, and the cost of buying plus selling. Sample fee models to start from, not price lists of real providers. |
 
 ## Smart about numbers
 
@@ -24,17 +24,17 @@
 
 ## Privacy
 
-- Everything is calculated on your device. What you enter stays in your browser’s local storage, so the fields are filled the next time you come back – nothing else.
+- Everything is calculated on your device. What you enter stays in your browser’s local storage, so the fields are filled the next time you come back. Nothing else.
 - No account, no ads, no cookies, no visit counting.
 - The page carries a Content Security Policy with `connect-src 'none'`: the browser itself blocks any fetch, XHR, WebSocket or beacon the page might attempt, and nothing is loaded from other sites. You can check it in the developer tools.
 
 ## Offline and as a single file
 
-After the first visit, a service worker keeps the app available without a connection; in Chrome, Edge and Samsung Internet an “Install” button appears at the top and sets it up as an app, on your phone or your computer. Or download the page itself – “Download as a single file” in the footer saves `pocketsum.html`: it contains everything (styles, the calculations, all 14 languages) and runs from your drive with a double click.
+After the first visit, a service worker keeps the app available without a connection; in Chrome, Edge and Samsung Internet an “Install” button appears at the top and sets it up as an app, on your phone or your computer. Or download the page itself: “Download as a single file” in the footer saves `pocketsum.html`. It contains everything (styles, the calculations, all 14 languages) and runs from your drive with a double click.
 
 ## Languages
 
-German, English, Spanish, French, Italian, Dutch, Polish, Portuguese, Turkish, Russian, Hindi, Chinese, Japanese and Korean. The app follows your browser’s language and remembers your choice. Some translations are machine-made – corrections are very welcome.
+German, English, Spanish, French, Italian, Dutch, Polish, Portuguese, Turkish, Russian, Hindi, Chinese, Japanese and Korean. The app follows your browser’s language and remembers your choice. Some translations are machine-made, corrections are very welcome.
 
 ## Not advice
 
