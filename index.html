@@ -566,6 +566,9 @@ main input, main button, main label { scroll-margin-top: 84px; }
 .wert.haupt { background: var(--beschlag), color-mix(in srgb, var(--farbe) 14%, var(--panel-2)); }
 /* Hoher Kontrast kennt keine Schatten, der Beschlag bleibt. Gedruckt wird ohne beides. */
 :root[data-vision="contrast"] :is(.steuer select, .installieren, .karte, .wert) { box-shadow: none; }
+@media print {
+  .steuer select, .installieren, .karte, .eingabe, .stepper button, .wert { background-image: none !important; box-shadow: none !important; }
+}
 /* Ende Beschlag */
 </style>
 </head>
