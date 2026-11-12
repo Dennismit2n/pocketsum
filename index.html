@@ -496,7 +496,7 @@ main input, main button, main label { scroll-margin-top: 84px; }
 .steuer select,
 .installieren,
 .karte,
-.eingabe,
+.eingabe:not(.klein),
 .stepper button,
 .wert {
   --bsl-i: 2px;
@@ -545,9 +545,9 @@ main input, main button, main label { scroll-margin-top: 84px; }
   box-shadow: -12px 14px 30px -6px rgba(0, 0, 0, 0.34);
 }
 @supports (color: color-mix(in srgb, red 50%, transparent)) {
-  .eingabe, .stepper button { --bsl-l: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .eingabe:not(.klein), .stepper button { --bsl-l: color-mix(in srgb, var(--accent) 45%, transparent); }
 }
-.eingabe,
+.eingabe:not(.klein),
 .stepper button {
   --bsl-i: 3px;
   --bsl-g: 4px;
@@ -565,10 +565,11 @@ main input, main button, main label { scroll-margin-top: 84px; }
   box-shadow: -3px 4px 8px -4px rgba(0, 0, 0, 0.5);
 }
 .wert.haupt { background: var(--beschlag), color-mix(in srgb, var(--farbe) 14%, var(--panel-2)); }
+:root[data-vision="contrast"] .wert.haupt { background: var(--beschlag), var(--panel-2); }
 /* Hoher Kontrast kennt keine Schatten, der Beschlag bleibt. Gedruckt wird ohne beides. */
 :root[data-vision="contrast"] :is(.steuer select, .installieren, .karte, .wert) { box-shadow: none; }
 @media print {
-  .steuer select, .installieren, .karte, .eingabe, .stepper button, .wert { background-image: none !important; box-shadow: none !important; }
+  .steuer select, .installieren, .karte, .eingabe:not(.klein), .stepper button, .wert { background-image: none !important; box-shadow: none !important; }
 }
 /* Ende Beschlag */
 </style>
