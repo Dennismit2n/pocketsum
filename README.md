@@ -48,9 +48,9 @@ No build step and no dependencies. Everything lives in `index.html`: the styles,
 node --test "tests/*.test.mjs"
 ```
 
-The tests check the calculation core (VAT, tip rounding, fuel tables, German dividend taxation, trading costs and break-even, the number parser in both conventions) and the translations (same keys and placeholders in all 14 languages, no unused or missing keys). `tools/` holds the scripts for screenshots, icons and the preview image; they use Playwright from a neighbouring repository and are not needed to run the app.
+The tests check the calculation core (VAT, tip rounding, fuel tables, German dividend taxation, trading costs and break-even, the number parser in both conventions) and the translations (same keys and placeholders in all 14 languages, no unused or missing keys). `tools/` holds the scripts for screenshots, icons and the preview image; they use Playwright from a neighboring repository and are not needed to run the app.
 
-## Licence
+## License
 
 [MIT](LICENSE)
 
